@@ -1,4 +1,4 @@
-# template-string-converter README
+# template-string-converter
 
 This extension addresses [this request](https://github.com/microsoft/vscode/issues/56704) to convert Javascript/Typescript quotes to backticks when `${` has been entered within a string.
 
