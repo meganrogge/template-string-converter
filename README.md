@@ -5,6 +5,7 @@ This extension addresses [this request](https://github.com/microsoft/vscode/issu
 ## Features
 
 Autocorrect from quotes to backticks within javascript and typescript files
+![]("src\demo\recording.gif")
 
 ## Extension Settings
 
