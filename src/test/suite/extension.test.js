@@ -5,7 +5,6 @@ import * as vscode from 'vscode';
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
 	let contents = "\"$\"";
-	
 	test('Base case', () => {
 		return withRandomFileEditor(contents, 'js', async (editor, doc) => {
 			await editor.insertSnippet(new vscode.SnippetString("{"), new vscode.Position(0, 2));
