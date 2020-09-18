@@ -2,7 +2,7 @@
 	"name": "template-string-converter",
 	"displayName": "template-string-converter",
 	"description": "Converts quotes to backticks when a $ and { are entered within quotes",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"engines": {
 		"vscode": "^1.49.0"
 	},
