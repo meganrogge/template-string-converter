@@ -5,7 +5,7 @@ This extension addresses [this request](https://github.com/microsoft/vscode/issu
 ## Features
 
 Autocorrect from quotes to backticks within javascript and typescript files
-![](https://github.com/meganrogge/template-string-converter/blob/master/src/demo/recording.gif)
+![](https://raw.githubusercontent.com/meganrogge/template-string-converter/src/demo/recording.gif)
 
 ## Extension Settings
 
