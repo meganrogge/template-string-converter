@@ -67,7 +67,7 @@
     "typescript": "^4.0.2",
     "vscode-test": "^1.4.0"
   },
-  "icon": "logo.png",
+  "icon": "src/logo.png",
   "keywords": [
     "javascript",
     "typescript",
