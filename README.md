@@ -5,7 +5,7 @@ This extension addresses [this request](https://github.com/microsoft/vscode/issu
 ## Features
 
 Autocorrect from quotes to backticks within javascript and typescript files
-![](https://raw.githubusercontent.com/meganrogge/template-string-converter/master/src/demo/recording.gif)
+![typing a dollar sign then open curly brace within a string converts the quotes to backticks](https://raw.githubusercontent.com/microsoft/vscode-docs/vnext/release-notes/images/1_50/template-string-converter-extension.gif)
 
 ## Extension Settings
 
