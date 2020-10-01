@@ -5,13 +5,11 @@ export function activate(context: vscode.ExtensionContext) {
 
   vscode.workspace.onDidChangeTextDocument(async (e) => {
     let configuration = vscode.workspace.getConfiguration();
-    let quoteType = configuration.get<{}>(
-      "template-string-converter.quoteType"
-    );
+    let quoteType = configuration.get<{}>("template-string-converter.quoteType");
     let enabled = configuration.get<{}>("template-string-converter.enabled");
-    let autoCloseBrackets = configuration.get<{}>("editor.autoClosingBrackets");
     let changes = e.contentChanges[0];
-    if (enabled && changes) {
+    let validLanguages = ['typescript', 'javascript', 'typescriptreact', 'javascriptreact'];
+    if (enabled && changes && validLanguages.includes(e.document.languageId)) {
       try {
         let lineNumber = changes.range.start.line;
         let currentChar = changes.range.start.character;
@@ -109,8 +107,7 @@ export function activate(context: vscode.ExtensionContext) {
                 currentChar + 2
               );
             }
-          }
-        } else if (changes.text === "{" && priorChar === "$") {
+          } else if (changes.text === "{" && priorChar === "$") {
           let edit = new vscode.WorkspaceEdit();
           edit.replace(
             e.document.uri,
@@ -139,37 +136,38 @@ export function activate(context: vscode.ExtensionContext) {
               currentChar + 1
             );
           }
-        } else if (changes.text === "$" && nextChar === "{") {
-          let edit = new vscode.WorkspaceEdit();
-          edit.replace(
-            e.document.uri,
-            new vscode.Range(
-              openingQuotePosition,
-              openingQuotePosition.translate(undefined, 1)
-            ),
-            "`"
-          );
-          edit.insert(e.document.uri, endPosition.translate(undefined, 2), "}");
-          edit.replace(
-            e.document.uri,
-            new vscode.Range(
-              endQuotePosition,
-              endQuotePosition.translate(undefined, 1)
-            ),
-            "`"
-          );
-          await vscode.workspace.applyEdit(edit);
-          if (vscode.window.activeTextEditor) {
-            vscode.window.activeTextEditor.selection = new vscode.Selection(
-              lineNumber,
-              currentChar + 2,
-              lineNumber,
-              currentChar + 2
+          } else if (changes.text === "$" && nextChar === "{") {
+            let edit = new vscode.WorkspaceEdit();
+            edit.replace(
+              e.document.uri,
+              new vscode.Range(
+                openingQuotePosition,
+                openingQuotePosition.translate(undefined, 1)
+              ),
+              "`"
             );
+            edit.insert(e.document.uri, endPosition.translate(undefined, 2), "}");
+            edit.replace(
+              e.document.uri,
+              new vscode.Range(
+                endQuotePosition,
+                endQuotePosition.translate(undefined, 1)
+              ),
+              "`"
+            );
+            await vscode.workspace.applyEdit(edit);
+            if (vscode.window.activeTextEditor) {
+              vscode.window.activeTextEditor.selection = new vscode.Selection(
+                lineNumber,
+                currentChar + 2,
+                lineNumber,
+                currentChar + 2
+              );
+            }
           }
         }
       } catch (e) {}
-    }
+      }
   });
 }
 
