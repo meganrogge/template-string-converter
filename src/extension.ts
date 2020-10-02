@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log("String template converter is running!");
-
+////
   vscode.workspace.onDidChangeTextDocument(async (e) => {
     let configuration = vscode.workspace.getConfiguration();
     let quoteType = configuration.get<{}>("template-string-converter.quoteType");
