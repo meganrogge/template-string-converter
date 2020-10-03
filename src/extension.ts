@@ -189,7 +189,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 let withinBackticks = (line: string, currentCharIndex: number) => {
     return line.substring(0, currentCharIndex).includes('`') && line.substring(currentCharIndex+1, line.length).includes('`');
-}
+};
 
 let getQuoteChar = (type: any) => {
   if (!type || type === "both") {
