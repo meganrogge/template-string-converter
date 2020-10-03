@@ -1,8 +1,9 @@
+import { stringify } from "querystring";
 import * as vscode from "vscode";
 
 export function activate(context: vscode.ExtensionContext) {
   console.log("String template converter is running!");
-  ////////
+
   vscode.workspace.onDidChangeTextDocument(async (e) => {
     let configuration = vscode.workspace.getConfiguration();
     let quoteType = configuration.get<{}>(
@@ -58,7 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
             endPosition.translate(undefined, 3)
           )
         );
-        if (!lineText.includes("//")) {
+        if (!lineText.substring(0, currentChar).includes("//") && !withinBackticks(lineText, currentChar)) {
           if (changes.text === "{}" && priorChar === "$") {
             let edit = new vscode.WorkspaceEdit();
             edit.replace(
@@ -184,6 +185,10 @@ export function activate(context: vscode.ExtensionContext) {
       } catch (e) {}
     }
   });
+}
+
+let withinBackticks = (line: string, currentCharIndex: number) => {
+    return line.substring(0, currentCharIndex).includes('`') && line.substring(currentCharIndex+1, line.length).includes('`');
 }
 
 let getQuoteChar = (type: any) => {
