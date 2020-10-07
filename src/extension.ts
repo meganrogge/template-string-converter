@@ -1,4 +1,3 @@
-import { stringify } from "querystring";
 import * as vscode from "vscode";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -58,7 +57,7 @@ export function activate(context: vscode.ExtensionContext) {
           )
         );
         if (
-          !lineText.substring(0, currentChar).includes("//") &&
+          notAComment(lineText, currentChar, startQuoteIndex, endQuoteIndex) &&
           !withinBackticks(lineText, currentChar)
         ) {
           if (changes.text === "{}" && priorChar === "$") {
@@ -187,6 +186,22 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 }
+
+let notAComment = (
+  line: string,
+  charIndex: number,
+  startQuoteIndex: number,
+  endquoteIndex: number
+) => {
+  if (line.substring(0, charIndex).includes("//")) {
+    return (
+      line.substring(0, charIndex).indexOf("//") > startQuoteIndex &&
+      line.substring(0, charIndex).indexOf("//") < endquoteIndex
+    );
+  } else {
+    return true;
+  }
+};
 
 let withinBackticks = (line: string, currentCharIndex: number) => {
   return (
