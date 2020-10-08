@@ -44,6 +44,16 @@
             "type": "boolean",
             "description": "extension is enabled",
             "default": true
+          },
+          "template-string-converter.validLanguages": {
+            "type": "array",
+            "description": "extension runs on these languages",
+            "default": [
+                "typescript",
+                "javascript",
+                "typescriptreact",
+                "javascriptreact"
+            ]
           }
         }
       }
