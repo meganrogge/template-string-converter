@@ -8,13 +8,8 @@ export function activate(context: vscode.ExtensionContext) {
     );
     let enabled = configuration.get<{}>("template-string-converter.enabled");
     let changes = e.contentChanges[0];
-    let validLanguages = [
-      "typescript",
-      "javascript",
-      "typescriptreact",
-      "javascriptreact",
-    ];
-    if (enabled && changes && validLanguages.includes(e.document.languageId)) {
+    let validLanguages = configuration.get<string[]>("template-string-converter.validLanguages");
+    if (enabled && changes && validLanguages?.includes(e.document.languageId)) {
       try {
         let lineNumber = changes.range.start.line;
         let currentChar = changes.range.start.character;
