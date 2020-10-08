@@ -8,7 +8,9 @@ export function activate(context: vscode.ExtensionContext) {
     );
     let enabled = configuration.get<{}>("template-string-converter.enabled");
     let changes = e.contentChanges[0];
-    let validLanguages = configuration.get<string[]>("template-string-converter.validLanguages");
+    let validLanguages = configuration.get<string[]>(
+      "template-string-converter.validLanguages"
+    );
     if (enabled && changes && validLanguages?.includes(e.document.languageId)) {
       try {
         let lineNumber = changes.range.start.line;
@@ -53,7 +55,8 @@ export function activate(context: vscode.ExtensionContext) {
         );
         if (
           notAComment(lineText, currentChar, startQuoteIndex, endQuoteIndex) &&
-          !withinBackticks(lineText, currentChar)
+          !withinBackticks(lineText, currentChar) &&
+          lineText.charAt(startQuoteIndex) === lineText.charAt(endQuoteIndex)
         ) {
           if (changes.text === "{}" && priorChar === "$") {
             let edit = new vscode.WorkspaceEdit();
