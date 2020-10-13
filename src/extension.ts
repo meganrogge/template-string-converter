@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 
 type QuoteType = "both" | "single" | "double";
 type QuoteChar = "both" | `'` | `"`;
-
+//
 export function activate(context: vscode.ExtensionContext) {
   vscode.workspace.onDidChangeTextDocument(async (e) => {
     let configuration = vscode.workspace.getConfiguration();
