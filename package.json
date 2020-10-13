@@ -2,7 +2,7 @@
   "name": "template-string-converter",
   "displayName": "Template String Converter",
   "description": "Converts quotes to backticks when a $ and { are entered within quotes in JavaScript and TypeScript files",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "engines": {
     "vscode": "^1.49.0"
   },
@@ -49,10 +49,10 @@
             "type": "array",
             "description": "extension runs on these languages",
             "default": [
-                "typescript",
-                "javascript",
-                "typescriptreact",
-                "javascriptreact"
+              "typescript",
+              "javascript",
+              "typescriptreact",
+              "javascriptreact"
             ]
           }
         }

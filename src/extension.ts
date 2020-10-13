@@ -78,7 +78,6 @@ export function activate(context: vscode.ExtensionContext) {
             );
             await vscode.workspace.applyEdit(edit);
             if (vscode.window.activeTextEditor) {
-              console.log("here");
               vscode.window.activeTextEditor.selection = new vscode.Selection(
                 lineNumber,
                 currentChar + 1,
@@ -138,7 +137,6 @@ export function activate(context: vscode.ExtensionContext) {
             );
             await vscode.workspace.applyEdit(edit);
             if (vscode.window.activeTextEditor) {
-              console.log("here");
               vscode.window.activeTextEditor.selection = new vscode.Selection(
                 lineNumber,
                 currentChar + 1,
