@@ -1,9 +1,12 @@
 import * as vscode from "vscode";
 
+type QuoteType = "both" | "single" | "double";
+type QuoteChar = "both" | `'` | `"`;
+
 export function activate(context: vscode.ExtensionContext) {
   vscode.workspace.onDidChangeTextDocument(async (e) => {
     let configuration = vscode.workspace.getConfiguration();
-    let quoteType = configuration.get<{}>(
+    let quoteType = configuration.get<QuoteType>(
       "template-string-converter.quoteType"
     );
     let enabled = configuration.get<{}>("template-string-converter.enabled");
@@ -11,7 +14,12 @@ export function activate(context: vscode.ExtensionContext) {
     let validLanguages = configuration.get<string[]>(
       "template-string-converter.validLanguages"
     );
-    if (enabled && changes && validLanguages?.includes(e.document.languageId)) {
+    if (
+      enabled &&
+      quoteType &&
+      changes &&
+      validLanguages?.includes(e.document.languageId)
+    ) {
       try {
         let lineNumber = changes.range.start.line;
         let currentChar = changes.range.start.character;
@@ -208,7 +216,7 @@ let withinBackticks = (line: string, currentCharIndex: number) => {
   );
 };
 
-let getQuoteChar = (type: any) => {
+let getQuoteChar = (type: QuoteType): QuoteChar => {
   if (!type || type === "both") {
     return "both";
   } else if (type === "single") {
@@ -218,8 +226,8 @@ let getQuoteChar = (type: any) => {
   }
 };
 
-let getStartQuote = (line: string, type: string) => {
-  if (type === "both") {
+let getStartQuote = (line: string, quoteChar: QuoteChar): number => {
+  if (quoteChar === "both") {
     let double = line.toString().lastIndexOf('"');
     let single = line.toString().lastIndexOf("'");
     if (double >= 0) {
@@ -228,12 +236,12 @@ let getStartQuote = (line: string, type: string) => {
       return single;
     }
   } else {
-    return line.toString().lastIndexOf(type);
+    return line.toString().lastIndexOf(quoteChar);
   }
 };
 
-let getEndQuote = (line: string, type: string) => {
-  if (type === "both") {
+let getEndQuote = (line: string, quoteChar: QuoteChar): number => {
+  if (quoteChar === "both") {
     let double = line.toString().indexOf('"');
     let single = line.toString().indexOf("'");
     if (double >= 0) {
@@ -244,7 +252,7 @@ let getEndQuote = (line: string, type: string) => {
       return -1;
     }
   } else {
-    return line.toString().indexOf(type);
+    return line.toString().indexOf(quoteChar);
   }
 };
 
