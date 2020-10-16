@@ -1,7 +1,7 @@
 # Template String Converter
 
 This [extension](https://marketplace.visualstudio.com/items?itemName=meganrogge.template-string-converter)  addresses this [request](https://github.com/microsoft/vscode/issues/56704) to convert Javascript/Typescript quotes to backticks when `${` has been entered within a string.
-//
+////
 ## Features
 
 <!--
