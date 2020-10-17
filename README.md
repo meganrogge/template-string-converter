@@ -10,7 +10,7 @@ fa//
 //////////////////
 <!-- ~~~///////// -->
 a////
-b
+bf
 ~~~
 
 Autocorrect from quotes to backticks within javascript and typescript files
