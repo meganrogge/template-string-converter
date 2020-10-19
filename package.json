@@ -45,6 +45,11 @@
             "description": "extension is enabled",
             "default": true
           },
+          "template-string-converter.addBracketsToProps": {
+            "type": "boolean",
+            "description": "will add brackets around the prop",
+            "default": false
+          },
           "template-string-converter.validLanguages": {
             "type": "array",
             "description": "extension runs on these languages",
