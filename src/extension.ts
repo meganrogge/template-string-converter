@@ -15,6 +15,8 @@ export function activate(context: vscode.ExtensionContext) {
       "template-string-converter.validLanguages"
     );
     let addBracketsToProps = configuration.get<{}>("template-string-converter.addBracketsToProps");
+    const removeBackticks = configuration.get<{}>("template-string-converter.autoRemoveTemplateString");
+
     if (
       enabled &&
       quoteType &&
@@ -70,7 +72,7 @@ export function activate(context: vscode.ExtensionContext) {
           let regex = new RegExp(/<.*=(("|')[^`]*(\${}|\${)[^`]*("|')).*>.*(<\/.*>)?/gm);
           let matches = lineText.match(regex);
 
-          if (withinBackticks(lineText, currentChar) && !lineText.slice(startQuoteIndex + 1, endQuoteIndex).match(/\$\{/)) {
+          if (withinBackticks(lineText, currentChar) && !lineText.slice(startQuoteIndex + 1, endQuoteIndex).match(/\$\{/) && removeBackticks) {
             let edit = new vscode.WorkspaceEdit();
 
             edit.replace(
