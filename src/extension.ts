@@ -382,7 +382,7 @@ let getStartQuote = (line: string, quoteChar: QuoteChar): number => {
       return back;
     }
   } else {
-    return line.toString().indexOf('`') !== -1 ? line.toString().indexOf('`') : line.toString().indexOf(quoteChar);
+    return line.toString().lastIndexOf('`') !== -1 ? line.toString().lastIndexOf('`') : line.toString().lastIndexOf(quoteChar);
   }
 };
 
