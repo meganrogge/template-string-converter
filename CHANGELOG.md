@@ -1,9 +1,5 @@
 # Change Log
 
-All notable changes to the "template-string-converter" extension will be documented in this file.
+## [0.2.3]
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
-
-- Initial release
+- @xNocken added a setting which converts backticks to quotes when `${` is removed
