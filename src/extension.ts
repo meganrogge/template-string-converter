@@ -176,63 +176,9 @@ export function activate(context: vscode.ExtensionContext) {
               if (vscode.window.activeTextEditor) {
                 vscode.window.activeTextEditor.selection = new vscode.Selection(
                   lineNumber,
-                  currentChar + 2,
-                  lineNumber,
-                  currentChar + 2
-                );
-              }
-            } else if (changes.text === "{}" && priorChar === "$") {
-              let edit = new vscode.WorkspaceEdit();
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  openingQuotePosition,
-                  openingQuotePosition.translate(undefined, 1)
-                ),
-                "`"
-              );
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  endQuotePosition,
-                  endQuotePosition.translate(undefined, 1)
-                ),
-                "`"
-              );
-              await vscode.workspace.applyEdit(edit);
-              if (vscode.window.activeTextEditor) {
-                vscode.window.activeTextEditor.selection = new vscode.Selection(
-                  lineNumber,
                   currentChar + 1,
                   lineNumber,
                   currentChar + 1
-                );
-              }
-            } else if (changes.text === "$" && nextTwoChars === "{}") {
-              let edit = new vscode.WorkspaceEdit();
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  openingQuotePosition,
-                  openingQuotePosition.translate(undefined, 1)
-                ),
-                "`"
-              );
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  endQuotePosition,
-                  endQuotePosition.translate(undefined, 1)
-                ),
-                "`"
-              );
-              await vscode.workspace.applyEdit(edit);
-              if (vscode.window.activeTextEditor) {
-                vscode.window.activeTextEditor.selection = new vscode.Selection(
-                  lineNumber,
-                  currentChar + 2,
-                  lineNumber,
-                  currentChar + 2
                 );
               }
             } else if (changes.text === "{" && priorChar === "$") {
