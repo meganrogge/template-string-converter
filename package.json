@@ -50,6 +50,11 @@
             "description": "will add brackets around the prop",
             "default": false
           },
+          "template-string-converter.autoRemoveTemplateString": {
+            "type": "boolean",
+            "description": "replaces backticks with regular strings if \"${\" is removed",
+            "default": false
+          },
           "template-string-converter.validLanguages": {
             "type": "array",
             "description": "extension runs on these languages",

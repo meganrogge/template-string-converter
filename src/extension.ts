@@ -15,6 +15,8 @@ export function activate(context: vscode.ExtensionContext) {
       "template-string-converter.validLanguages"
     );
     let addBracketsToProps = configuration.get<{}>("template-string-converter.addBracketsToProps");
+    const removeBackticks = configuration.get<{}>("template-string-converter.autoRemoveTemplateString");
+
     if (
       enabled &&
       quoteType &&
@@ -62,12 +64,39 @@ export function activate(context: vscode.ExtensionContext) {
             endPosition.translate(undefined, 3)
           )
         );
+
         if (
           notAComment(lineText, currentChar, startQuoteIndex, endQuoteIndex) &&
           lineText.charAt(startQuoteIndex) === lineText.charAt(endQuoteIndex)
         ) {
           let regex = new RegExp(/<.*=(("|')[^`]*(\${}|\${)[^`]*("|')).*>.*(<\/.*>)?/gm);
           let matches = lineText.match(regex);
+
+          if (withinBackticks(lineText, currentChar) && !lineText.slice(startQuoteIndex + 1, endQuoteIndex).match(/\$\{/) && removeBackticks) {
+            let edit = new vscode.WorkspaceEdit();
+
+            edit.replace(
+              e.document.uri,
+              new vscode.Range(
+                openingQuotePosition,
+                openingQuotePosition.translate(undefined, 1)
+              ),
+              quoteType === 'single' ? '\'' : '"',
+            );
+
+            edit.replace(
+              e.document.uri,
+              new vscode.Range(
+                endQuotePosition,
+                endQuotePosition.translate(undefined, 1)
+              ),
+              quoteType === 'single' ? '\'' : '"',
+            );
+
+            await vscode.workspace.applyEdit(edit);
+            return;
+          }
+
           if (matches !== null && addBracketsToProps) {
             if (changes.text === "{" && priorChar === "$") {
               let edit = new vscode.WorkspaceEdit();
@@ -272,7 +301,7 @@ let notAComment = (
 let withinBackticks = (line: string, currentCharIndex: number) => {
   return (
     line.substring(0, currentCharIndex).includes("`") &&
-    line.substring(currentCharIndex + 1, line.length).includes("`")
+    line.substring(currentCharIndex, line.length).includes("`")
   );
 };
 
@@ -290,13 +319,16 @@ let getStartQuote = (line: string, quoteChar: QuoteChar): number => {
   if (quoteChar === "both") {
     let double = line.toString().lastIndexOf('"');
     let single = line.toString().lastIndexOf("'");
+    let back = line.toString().lastIndexOf("`");
     if (double >= 0) {
       return double;
-    } else {
+    } else if (single >= 0) {
       return single;
+    } else {
+      return back;
     }
   } else {
-    return line.toString().lastIndexOf(quoteChar);
+    return line.toString().lastIndexOf('`') !== -1 ? line.toString().lastIndexOf('`') : line.toString().lastIndexOf(quoteChar);
   }
 };
 
@@ -304,15 +336,18 @@ let getEndQuote = (line: string, quoteChar: QuoteChar): number => {
   if (quoteChar === "both") {
     let double = line.toString().indexOf('"');
     let single = line.toString().indexOf("'");
+    let back = line.toString().indexOf("`");
     if (double >= 0) {
       return double;
     } else if (single >= 0) {
       return single;
+    } else if (back >= 0) {
+      return back;
     } else {
       return -1;
     }
   } else {
-    return line.toString().indexOf(quoteChar);
+    return line.toString().indexOf('`') !== -1 ? line.toString().indexOf('`') : line.toString().indexOf(quoteChar);
   }
 };
 
