@@ -16,6 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
     let addBracketsToProps = configuration.get<{}>("template-string-converter.addBracketsToProps");
     const removeBackticks = configuration.get<{}>("template-string-converter.autoRemoveTemplateString");
+    let autoClosingBrackets = configuration.get<{}>("editor.autoClosingBrackets");
 
     if (
       enabled &&
@@ -58,10 +59,10 @@ export function activate(context: vscode.ExtensionContext) {
             endPosition.translate(undefined, 2)
           )
         );
-        let nextTwoChars = e.document.getText(
+        let priorTwoChars = e.document.getText(
           new vscode.Range(
-            startPosition.translate(undefined, 2),
-            endPosition.translate(undefined, 3)
+            startPosition.translate(undefined, -1),
+            endPosition
           )
         );
 
@@ -210,7 +211,7 @@ export function activate(context: vscode.ExtensionContext) {
                   currentChar + 1
                 );
               }
-            } else if (changes.text === "{" && priorChar === "$") {
+            } else if (changes.text === "{" && priorChar === "$" && autoClosingBrackets !== 'never') {
               let edit = new vscode.WorkspaceEdit();
               edit.replace(
                 e.document.uri,
@@ -242,7 +243,7 @@ export function activate(context: vscode.ExtensionContext) {
                   currentChar + 1
                 );
               }
-            } else if (changes.text === "$" && nextChar === "{") {
+            } else if (autoClosingBrackets === 'never' && priorTwoChars === '${' && changes.text === '}') {
               let edit = new vscode.WorkspaceEdit();
               edit.replace(
                 e.document.uri,
@@ -252,11 +253,6 @@ export function activate(context: vscode.ExtensionContext) {
                 ),
                 "`"
               );
-              edit.insert(
-                e.document.uri,
-                endPosition.translate(undefined, 2),
-                "}"
-              );
               edit.replace(
                 e.document.uri,
                 new vscode.Range(
@@ -265,15 +261,15 @@ export function activate(context: vscode.ExtensionContext) {
                 ),
                 "`"
               );
-              await vscode.workspace.applyEdit(edit);
               if (vscode.window.activeTextEditor) {
                 vscode.window.activeTextEditor.selection = new vscode.Selection(
                   lineNumber,
-                  currentChar + 2,
+                  currentChar,
                   lineNumber,
-                  currentChar + 2
+                  currentChar
                 );
               }
+              await vscode.workspace.applyEdit(edit);
             }
           }
         }
@@ -331,7 +327,6 @@ let getStartQuote = (line: string, quoteChar: QuoteChar): number => {
     return line.toString().lastIndexOf('`') !== -1 ? line.toString().lastIndexOf('`') : line.toString().lastIndexOf(quoteChar);
   }
 };
-
 let getEndQuote = (line: string, quoteChar: QuoteChar): number => {
   if (quoteChar === "both") {
     let double = line.toString().indexOf('"');

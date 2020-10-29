@@ -49,15 +49,6 @@ suite('Extension Test Suite', () => {
 			assert.equal(doc.getText(), "`${}hello`");
 		});
 	});
-
-	let insertInReverse = "\"{\"";
-	test('Insert in reverse', () => {
-		return withRandomFileEditor(insertInReverse, 'ts', async (editor, doc) => {
-			await editor.insertSnippet(new vscode.SnippetString("$"), new vscode.Position(0, 1));
-			await delay(500);
-			assert.equal(doc.getText(), "`${}`");
-		});
-	});
 	
 	let properBacktick = "`$`";
 	test('Proper backtick not modified', () => {
