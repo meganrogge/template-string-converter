@@ -59,12 +59,6 @@ export function activate(context: vscode.ExtensionContext) {
             endPosition.translate(undefined, 2)
           )
         );
-        let priorTwoChars = e.document.getText(
-          new vscode.Range(
-            startPosition.translate(undefined, -1),
-            endPosition
-          )
-        );
 
         if (
           notAComment(lineText, currentChar, startQuoteIndex, endQuoteIndex) &&
@@ -243,7 +237,7 @@ export function activate(context: vscode.ExtensionContext) {
                   currentChar + 1
                 );
               }
-            } else if (autoClosingBrackets === 'never' && priorTwoChars === '${' && changes.text === '}') {
+            } else if (autoClosingBrackets === 'never' && priorChar === '$' && changes.text === '{') {
               let edit = new vscode.WorkspaceEdit();
               edit.replace(
                 e.document.uri,
@@ -261,15 +255,15 @@ export function activate(context: vscode.ExtensionContext) {
                 ),
                 "`"
               );
+              await vscode.workspace.applyEdit(edit);
               if (vscode.window.activeTextEditor) {
                 vscode.window.activeTextEditor.selection = new vscode.Selection(
                   lineNumber,
-                  currentChar,
+                  currentChar + 1,
                   lineNumber,
-                  currentChar
+                  currentChar + 1
                 );
               }
-              await vscode.workspace.applyEdit(edit);
             }
           }
         }
