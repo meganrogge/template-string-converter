@@ -67,7 +67,7 @@ export function activate(context: vscode.ExtensionContext) {
           let regex = new RegExp(/<.*=(("|')[^`]*(\${}|\${)[^`]*("|')).*>.*(<\/.*>)?/gm);
           let matches = lineText.match(regex);
 
-          if (withinBackticks(lineText, currentChar) && !lineText.slice(startQuoteIndex + 1, endQuoteIndex).match(/\$\{/) && removeBackticks) {
+          if (withinBackticks(lineText, currentChar, lineNumber, e.document) && !lineText.slice(startQuoteIndex + 1, endQuoteIndex).match(/\$\{/) && removeBackticks) {
             let edit = new vscode.WorkspaceEdit();
 
             edit.replace(
@@ -176,7 +176,7 @@ export function activate(context: vscode.ExtensionContext) {
               return;
             }
           } else if (
-            !withinBackticks(lineText, currentChar)
+            !withinBackticks(lineText, currentChar, lineNumber, e.document)
           ) {
             if (changes.text === "{}" && priorChar === "$") {
               let edit = new vscode.WorkspaceEdit();
@@ -288,11 +288,68 @@ let notAComment = (
   }
 };
 
-let withinBackticks = (line: string, currentCharIndex: number) => {
-  return (
+let withinBackticks = (line: string, currentCharIndex: number, cursorLine: number, document: vscode.TextDocument) => {
+  let withinLine =
     line.substring(0, currentCharIndex).includes("`") &&
     line.substring(currentCharIndex, line.length).includes("`")
-  );
+    ;
+  if (withinLine) {
+    return withinLine;
+  } else {
+    let lineIndex = cursorLine;
+    let currentLine = document.lineAt(lineIndex).text;
+    return hasStartBacktick(lineIndex, currentLine, document) && hasEndBacktick(lineIndex, currentLine, document);
+  }
+};
+
+let hasStartBacktick = (lineIndex: number, currentLine: string, document: vscode.TextDocument) => {
+  while (lineIndex > 0) {
+    let backTick = currentLine.indexOf("`");
+    let semiColon = currentLine.indexOf(";");
+    let comma = currentLine.indexOf(",");
+    if (backTick >= 0 && semiColon >= 0 && semiColon < backTick) {
+      return true;
+    } else if (backTick >= 0 && semiColon >= 0 && semiColon > backTick) {
+      return false;
+    } else if (backTick >= 0 && comma >= 0 && comma < backTick) {
+      return true;
+    } else if (backTick >= 0 && comma >= 0 && comma > backTick) {
+      return false;
+    } else if (backTick >= 0) {
+      return true;
+    } else if (semiColon >= 0 || comma >= 0) {
+      return false;
+    }
+    lineIndex -= 1;
+    currentLine = document.lineAt(lineIndex).text;
+  }
+  return false;
+};
+
+let hasEndBacktick = (lineIndex: number, currentLine: string, document: vscode.TextDocument) => {
+  while (lineIndex < document.lineCount) {
+    let backTick = currentLine.indexOf("`");
+    let semiColon = currentLine.indexOf(";");
+    let comma = currentLine.indexOf(",");
+    if (backTick >= 0 && semiColon >= 0 && semiColon > backTick) {
+      return true;
+    } else if (backTick >= 0 && semiColon >= 0 && semiColon < backTick) {
+      return false;
+    } else if (backTick >= 0 && comma >= 0 && comma > backTick) {
+      return true;
+    } else if (backTick >= 0 && comma >= 0 && comma < backTick) {
+      return false;
+    } else if (backTick >= 0) {
+      return true;
+    } else if (semiColon >= 0) {
+      return false;
+    } else if (comma >= 0) {
+      return false;
+    }
+    lineIndex += 1;
+    currentLine = document.lineAt(lineIndex).text;
+  }
+  return false;
 };
 
 let getQuoteChar = (type: QuoteType): QuoteChar => {
