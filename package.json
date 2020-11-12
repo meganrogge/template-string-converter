@@ -55,6 +55,11 @@
             "description": "replaces backticks with regular strings if \"${\" is removed",
             "default": false
           },
+          "template-string-converter.convertOutermostQuotes": {
+            "type": "boolean",
+            "description": "for nested strings, converts the outermost quotes to backticks",
+            "default": false
+          },
           "template-string-converter.validLanguages": {
             "type": "array",
             "description": "extension runs on these languages",

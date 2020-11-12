@@ -8,12 +8,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     const configuration = vscode.workspace.getConfiguration();
     const quoteType = configuration.get<QuoteType>("template-string-converter.quoteType");
-    const enabled = configuration.get<{}>("template-string-converter.enabled");
+    const enabled = configuration.get<boolean>("template-string-converter.enabled");
     const changes = e.contentChanges[0];
     const validLanguages = configuration.get<string[]>("template-string-converter.validLanguages");
-    const addBracketsToProps = configuration.get<{}>("template-string-converter.addBracketsToProps");
-    const removeBackticks = configuration.get<{}>("template-string-converter.autoRemoveTemplateString");
+    const addBracketsToProps = configuration.get<boolean>("template-string-converter.addBracketsToProps");
+    const removeBackticks = configuration.get<boolean>("template-string-converter.autoRemoveTemplateString");
     const autoClosingBrackets = configuration.get<{}>("editor.autoClosingBrackets");
+    const convertOutermostQuotes = configuration.get<boolean>("template-string-converter.convertOutermostQuotes");
 
     if (
       enabled &&
@@ -32,12 +33,14 @@ export function activate(context: vscode.ExtensionContext) {
 
           const startQuoteIndex = getStartQuote(
             lineText.substring(0, currentChar),
-            getQuoteChar(quoteType)
+            getQuoteChar(quoteType),
+            convertOutermostQuotes
           );
           const endQuoteIndex =
             getEndQuote(
               lineText.substring(currentChar + 1, lineText.length),
-              getQuoteChar(quoteType)
+              getQuoteChar(quoteType),
+              convertOutermostQuotes
             ) +
             currentChar +
             1;
@@ -370,12 +373,15 @@ const getQuoteChar = (type: QuoteType): QuoteChar => {
   }
 };
 
-const getStartQuote = (line: string, quoteChar: QuoteChar): number => {
+const getStartQuote = (line: string, quoteChar: QuoteChar, convertOutermostQuotes?: boolean): number => {
   if (quoteChar === "both") {
-    const double = line.toString().lastIndexOf('"');
-    const single = line.toString().lastIndexOf("'");
-    const back = line.toString().lastIndexOf("`");
-    if (double >= 0) {
+    const double = convertOutermostQuotes ? line.toString().indexOf('"') : line.toString().lastIndexOf('"');
+    const single = convertOutermostQuotes ? line.toString().indexOf("'") : line.toString().lastIndexOf("'");
+    const back = convertOutermostQuotes ? line.toString().indexOf('`') : line.toString().lastIndexOf("`");
+    if (double >= 0 && single >= 0) {
+      // nested quotes
+      return !convertOutermostQuotes ? double : double < single ? double : single;
+    } else if (double >= 0) {
       return double;
     } else if (single >= 0) {
       return single;
@@ -383,15 +389,22 @@ const getStartQuote = (line: string, quoteChar: QuoteChar): number => {
       return back;
     }
   } else {
-    return line.toString().lastIndexOf('`') !== -1 ? line.toString().lastIndexOf('`') : line.toString().lastIndexOf(quoteChar);
+    if (convertOutermostQuotes) {
+      return line.toString().indexOf('`') !== -1 ? line.toString().indexOf('`') : line.toString().indexOf(quoteChar);
+    } else {
+      return line.toString().lastIndexOf('`') !== -1 ? line.toString().lastIndexOf('`') : line.toString().lastIndexOf(quoteChar);
+    }
   }
 };
-const getEndQuote = (line: string, quoteChar: QuoteChar): number => {
+const getEndQuote = (line: string, quoteChar: QuoteChar, convertOutermostQuotes?: boolean): number => {
   if (quoteChar === "both") {
-    const double = line.toString().indexOf('"');
-    const single = line.toString().indexOf("'");
-    const back = line.toString().indexOf("`");
-    if (double >= 0) {
+    const double = convertOutermostQuotes ? line.toString().lastIndexOf('"') : line.toString().indexOf('"');
+    const single = convertOutermostQuotes ? line.toString().lastIndexOf("'") : line.toString().indexOf("'");
+    const back = convertOutermostQuotes ? line.toString().lastIndexOf('`') : line.toString().indexOf("`");
+    if (double >= 0 && single >= 0) {
+      // nested quotes
+      return !convertOutermostQuotes ? double : double > single ? double : single;
+    } else if (double >= 0) {
       return double;
     } else if (single >= 0) {
       return single;
@@ -401,7 +414,11 @@ const getEndQuote = (line: string, quoteChar: QuoteChar): number => {
       return -1;
     }
   } else {
-    return line.toString().indexOf('`') !== -1 ? line.toString().indexOf('`') : line.toString().indexOf(quoteChar);
+    if (convertOutermostQuotes) {
+      return line.toString().lastIndexOf('`') !== -1 ? line.toString().lastIndexOf('`') : line.toString().lastIndexOf(quoteChar);
+    } else {
+      return line.toString().indexOf('`') !== -1 ? line.toString().indexOf('`') : line.toString().indexOf(quoteChar);
+    }
   }
 };
 
