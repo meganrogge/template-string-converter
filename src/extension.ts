@@ -25,248 +25,244 @@ export function activate(context: vscode.ExtensionContext) {
       validLanguages?.includes(e.document.languageId)
     ) {
       try {
-        let lineNumber = changes.range.start.line;
-        let currentChar = changes.range.start.character;
-        let lineText = e.document.lineAt(lineNumber).text;
+        for (let selection of vscode.window.activeTextEditor!.selections) {
+          let lineNumber = selection.start.line;
+          let currentChar = changes.range.start.character;
+          let lineText = e.document.lineAt(lineNumber).text;
 
-        let startPosition = new vscode.Position(lineNumber, currentChar - 1);
-        let endPosition = new vscode.Position(lineNumber, currentChar);
+          let startPosition = new vscode.Position(lineNumber, currentChar - 1);
+          let endPosition = new vscode.Position(lineNumber, currentChar);
 
-        let startQuoteIndex = getStartQuote(
-          lineText.substring(0, currentChar),
-          getQuoteChar(quoteType)
-        );
-        let endQuoteIndex =
-          getEndQuote(
-            lineText.substring(currentChar + 1, lineText.length),
+          let startQuoteIndex = getStartQuote(
+            lineText.substring(0, currentChar),
             getQuoteChar(quoteType)
-          ) +
-          currentChar +
-          1;
+          );
+          let endQuoteIndex =
+            getEndQuote(
+              lineText.substring(currentChar + 1, lineText.length),
+              getQuoteChar(quoteType)
+            ) +
+            currentChar +
+            1;
 
-        let openingQuotePosition = new vscode.Position(
-          lineNumber,
-          startQuoteIndex
-        );
-        let endQuotePosition = new vscode.Position(lineNumber, endQuoteIndex);
+          let openingQuotePosition = new vscode.Position(
+            lineNumber,
+            startQuoteIndex
+          );
+          let endQuotePosition = new vscode.Position(lineNumber, endQuoteIndex);
 
-        let priorChar = e.document.getText(
-          new vscode.Range(startPosition, endPosition)
-        );
-        let nextChar = e.document.getText(
-          new vscode.Range(
-            startPosition.translate(undefined, 2),
-            endPosition.translate(undefined, 2)
-          )
-        );
+          let priorChar = e.document.getText(
+            new vscode.Range(startPosition, endPosition)
+          );
+          if (
+            notAComment(lineText, currentChar, startQuoteIndex, endQuoteIndex) &&
+            lineText.charAt(startQuoteIndex) === lineText.charAt(endQuoteIndex)
+          ) {
+            let regex = new RegExp(/<.*=(("|')[^`]*(\${}|\${)[^`]*("|')).*>.*(<\/.*>)?/gm);
+            let matches = lineText.match(regex);
 
-        if (
-          notAComment(lineText, currentChar, startQuoteIndex, endQuoteIndex) &&
-          lineText.charAt(startQuoteIndex) === lineText.charAt(endQuoteIndex)
-        ) {
-          let regex = new RegExp(/<.*=(("|')[^`]*(\${}|\${)[^`]*("|')).*>.*(<\/.*>)?/gm);
-          let matches = lineText.match(regex);
-
-          if (withinBackticks(lineText, currentChar, lineNumber, e.document) && !lineText.slice(startQuoteIndex + 1, endQuoteIndex).match(/\$\{/) && removeBackticks) {
-            let edit = new vscode.WorkspaceEdit();
-
-            edit.replace(
-              e.document.uri,
-              new vscode.Range(
-                openingQuotePosition,
-                openingQuotePosition.translate(undefined, 1)
-              ),
-              quoteType === 'single' ? '\'' : '"',
-            );
-
-            edit.replace(
-              e.document.uri,
-              new vscode.Range(
-                endQuotePosition,
-                endQuotePosition.translate(undefined, 1)
-              ),
-              quoteType === 'single' ? '\'' : '"',
-            );
-
-            await vscode.workspace.applyEdit(edit);
-            return;
-          }
-
-          if (matches !== null && addBracketsToProps) {
-            if (changes.text === "{" && priorChar === "$") {
+            if (withinBackticks(lineText, currentChar, lineNumber, e.document) && !lineText.slice(startQuoteIndex + 1, endQuoteIndex).match(/\$\{/) && removeBackticks) {
               let edit = new vscode.WorkspaceEdit();
+
               edit.replace(
                 e.document.uri,
                 new vscode.Range(
                   openingQuotePosition,
                   openingQuotePosition.translate(undefined, 1)
                 ),
-                "{"
+                quoteType === 'single' ? '\'' : '"',
               );
+
               edit.replace(
                 e.document.uri,
                 new vscode.Range(
                   endQuotePosition,
                   endQuotePosition.translate(undefined, 1)
                 ),
-                "}"
+                quoteType === 'single' ? '\'' : '"',
               );
-              edit.insert(
-                e.document.uri,
-                new vscode.Position(lineNumber, currentChar + 1),
-                '}'
-              );
-              edit.insert(
-                e.document.uri,
-                new vscode.Position(lineNumber, endQuoteIndex),
-                "`"
-              );
-              edit.insert(
-                e.document.uri,
-                new vscode.Position(lineNumber, startQuoteIndex + 1),
-                "`"
-              );
+
               await vscode.workspace.applyEdit(edit);
-              if (vscode.window.activeTextEditor) {
-                vscode.window.activeTextEditor.selection = new vscode.Selection(
-                  lineNumber,
-                  currentChar + 2,
-                  lineNumber,
-                  currentChar + 2
-                );
-              }
-              return;
-            } else if (changes.text === "{}" && priorChar === "$") {
-              let edit = new vscode.WorkspaceEdit();
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  openingQuotePosition,
-                  openingQuotePosition.translate(undefined, 1)
-                ),
-                "{"
-              );
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  endQuotePosition,
-                  endQuotePosition.translate(undefined, 1)
-                ),
-                "}"
-              );
-              edit.insert(
-                e.document.uri,
-                new vscode.Position(lineNumber, endQuoteIndex),
-                "`"
-              );
-              edit.insert(
-                e.document.uri,
-                new vscode.Position(lineNumber, startQuoteIndex + 1),
-                "`"
-              );
-              await vscode.workspace.applyEdit(edit);
-              if (vscode.window.activeTextEditor) {
-                vscode.window.activeTextEditor.selection = new vscode.Selection(
-                  lineNumber,
-                  currentChar + 2,
-                  lineNumber,
-                  currentChar + 2
-                );
-              }
               return;
             }
-          } else if (
-            !withinBackticks(lineText, currentChar, lineNumber, e.document)
-          ) {
-            if (changes.text === "{}" && priorChar === "$") {
-              let edit = new vscode.WorkspaceEdit();
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  openingQuotePosition,
-                  openingQuotePosition.translate(undefined, 1)
-                ),
-                "`"
-              );
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  endQuotePosition,
-                  endQuotePosition.translate(undefined, 1)
-                ),
-                "`"
-              );
-              await vscode.workspace.applyEdit(edit);
-              if (vscode.window.activeTextEditor) {
-                vscode.window.activeTextEditor.selection = new vscode.Selection(
-                  lineNumber,
-                  currentChar + 1,
-                  lineNumber,
-                  currentChar + 1
+
+            if (matches !== null && addBracketsToProps) {
+              if (changes.text === "{" && priorChar === "$") {
+                let edit = new vscode.WorkspaceEdit();
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    openingQuotePosition,
+                    openingQuotePosition.translate(undefined, 1)
+                  ),
+                  "{"
                 );
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    endQuotePosition,
+                    endQuotePosition.translate(undefined, 1)
+                  ),
+                  "}"
+                );
+                edit.insert(
+                  e.document.uri,
+                  new vscode.Position(lineNumber, currentChar + 1),
+                  '}'
+                );
+                edit.insert(
+                  e.document.uri,
+                  new vscode.Position(lineNumber, endQuoteIndex),
+                  "`"
+                );
+                edit.insert(
+                  e.document.uri,
+                  new vscode.Position(lineNumber, startQuoteIndex + 1),
+                  "`"
+                );
+                await vscode.workspace.applyEdit(edit);
+                if (vscode.window.activeTextEditor) {
+                  vscode.window.activeTextEditor.selections.push(new vscode.Selection(
+                    lineNumber,
+                    currentChar + 2,
+                    lineNumber,
+                    currentChar + 2
+                  ));
+                }
+                return;
+              } else if (changes.text === "{}" && priorChar === "$") {
+                let edit = new vscode.WorkspaceEdit();
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    openingQuotePosition,
+                    openingQuotePosition.translate(undefined, 1)
+                  ),
+                  "{"
+                );
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    endQuotePosition,
+                    endQuotePosition.translate(undefined, 1)
+                  ),
+                  "}"
+                );
+                edit.insert(
+                  e.document.uri,
+                  new vscode.Position(lineNumber, endQuoteIndex),
+                  "`"
+                );
+                edit.insert(
+                  e.document.uri,
+                  new vscode.Position(lineNumber, startQuoteIndex + 1),
+                  "`"
+                );
+                await vscode.workspace.applyEdit(edit);
+                if (vscode.window.activeTextEditor) {
+                  vscode.window.activeTextEditor.selections.push(new vscode.Selection(
+                    lineNumber,
+                    currentChar + 2,
+                    lineNumber,
+                    currentChar + 2
+                  ));
+                }
+                return;
               }
-            } else if (changes.text === "{" && priorChar === "$" && autoClosingBrackets !== 'never') {
-              let edit = new vscode.WorkspaceEdit();
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  openingQuotePosition,
-                  openingQuotePosition.translate(undefined, 1)
-                ),
-                "`"
-              );
-              edit.insert(
-                e.document.uri,
-                endPosition.translate(undefined, 1),
-                "}"
-              );
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  endQuotePosition,
-                  endQuotePosition.translate(undefined, 1)
-                ),
-                "`"
-              );
-              await vscode.workspace.applyEdit(edit);
-              if (vscode.window.activeTextEditor) {
-                vscode.window.activeTextEditor.selection = new vscode.Selection(
-                  lineNumber,
-                  currentChar + 1,
-                  lineNumber,
-                  currentChar + 1
+            } else if (
+              !withinBackticks(lineText, currentChar, lineNumber, e.document)
+            ) {
+              if (changes.text === "{}" && priorChar === "$") {
+                let edit = new vscode.WorkspaceEdit();
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    openingQuotePosition,
+                    openingQuotePosition.translate(undefined, 1)
+                  ),
+                  "`"
                 );
-              }
-            } else if (autoClosingBrackets === 'never' && priorChar === '$' && changes.text === '{') {
-              let edit = new vscode.WorkspaceEdit();
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  openingQuotePosition,
-                  openingQuotePosition.translate(undefined, 1)
-                ),
-                "`"
-              );
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  endQuotePosition,
-                  endQuotePosition.translate(undefined, 1)
-                ),
-                "`"
-              );
-              await vscode.workspace.applyEdit(edit);
-              if (vscode.window.activeTextEditor) {
-                vscode.window.activeTextEditor.selection = new vscode.Selection(
-                  lineNumber,
-                  currentChar + 1,
-                  lineNumber,
-                  currentChar + 1
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    endQuotePosition,
+                    endQuotePosition.translate(undefined, 1)
+                  ),
+                  "`"
                 );
+                await vscode.workspace.applyEdit(edit);
+                if (vscode.window.activeTextEditor) {
+                  vscode.window.activeTextEditor.selections.push(new vscode.Selection(
+                    lineNumber,
+                    currentChar + 1,
+                    lineNumber,
+                    currentChar + 1
+                  ));
+                }
+              } else if (changes.text === "{" && priorChar === "$" && autoClosingBrackets !== 'never') {
+                let edit = new vscode.WorkspaceEdit();
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    openingQuotePosition,
+                    openingQuotePosition.translate(undefined, 1)
+                  ),
+                  "`"
+                );
+                edit.insert(
+                  e.document.uri,
+                  endPosition.translate(undefined, 1),
+                  "}"
+                );
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    endQuotePosition,
+                    endQuotePosition.translate(undefined, 1)
+                  ),
+                  "`"
+                );
+                await vscode.workspace.applyEdit(edit);
+                if (vscode.window.activeTextEditor) {
+                  vscode.window.activeTextEditor.selections.push(new vscode.Selection(
+                    lineNumber,
+                    currentChar + 1,
+                    lineNumber,
+                    currentChar + 1
+                  ));
+                }
+              } else if (autoClosingBrackets === 'never' && priorChar === '$' && changes.text === '{') {
+                let edit = new vscode.WorkspaceEdit();
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    openingQuotePosition,
+                    openingQuotePosition.translate(undefined, 1)
+                  ),
+                  "`"
+                );
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    endQuotePosition,
+                    endQuotePosition.translate(undefined, 1)
+                  ),
+                  "`"
+                );
+                await vscode.workspace.applyEdit(edit);
+                if (vscode.window.activeTextEditor) {
+                  vscode.window.activeTextEditor.selections.push(new vscode.Selection(
+                    lineNumber,
+                    currentChar + 1,
+                    lineNumber,
+                    currentChar + 1
+                  ));
+                }
               }
             }
           }
         }
+        console.log(vscode.window.activeTextEditor!.selections);
       } catch { }
     }
   });
