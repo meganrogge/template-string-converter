@@ -309,7 +309,9 @@ const withinBackticks = (line: string, currentCharIndex: number, cursorLine: num
   } else {
     const lineIndex = cursorLine;
     const currentLine = document.lineAt(lineIndex).text;
-    return hasStartBacktick(lineIndex, currentLine, document) && hasEndBacktick(lineIndex, currentLine, document);
+    const startOfLine = currentLine.substring(0, currentCharIndex);
+    const endOfLine = currentLine.substring(currentCharIndex, line.length);
+    return hasStartBacktick(lineIndex, startOfLine, document) && hasEndBacktick(lineIndex, endOfLine, document);
   }
 };
 
