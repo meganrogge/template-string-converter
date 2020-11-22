@@ -23,7 +23,11 @@ export function activate(context: vscode.ExtensionContext) {
       validLanguages?.includes(e.document.languageId)
     ) {
       try {
+
+        let selections = [];
+
         for (const selection of vscode.window.activeTextEditor!.selections) {
+
           const lineNumber = selection.start.line;
           const currentChar = changes.range.start.character;
           const lineText = e.document.lineAt(lineNumber).text;
@@ -36,24 +40,17 @@ export function activate(context: vscode.ExtensionContext) {
             getQuoteChar(quoteType),
             convertOutermostQuotes
           );
-          const endQuoteIndex =
-            getEndQuote(
-              lineText.substring(currentChar + 1, lineText.length),
-              getQuoteChar(quoteType),
-              convertOutermostQuotes
-            ) +
-            currentChar +
-            1;
 
-          const openingQuotePosition = new vscode.Position(
-            lineNumber,
-            startQuoteIndex
+          const endQuoteIndex = currentChar + 1 + getEndQuote(
+            lineText.substring(currentChar + 1, lineText.length),
+            getQuoteChar(quoteType),
+            convertOutermostQuotes
           );
+
+          const openingQuotePosition = new vscode.Position(lineNumber, startQuoteIndex);
           const endQuotePosition = new vscode.Position(lineNumber, endQuoteIndex);
 
-          const priorChar = e.document.getText(
-            new vscode.Range(startPosition, endPosition)
-          );
+          const priorChar = e.document.getText(new vscode.Range(startPosition, endPosition));
 
           if (
             notAComment(lineText, currentChar, startQuoteIndex, endQuoteIndex) &&
@@ -63,13 +60,10 @@ export function activate(context: vscode.ExtensionContext) {
             const regex = new RegExp(/<.*=(("|')[^`]*(\${}|\${)[^`]*("|')).*>.*(<\/.*>)?/gm);
             const matches = lineText.match(regex);
 
-            if (
-              withinBackticks(lineText, currentChar, lineNumber, e.document) &&
+            if (withinBackticks(lineText, currentChar, lineNumber, e.document) &&
               !lineText.slice(startQuoteIndex + 1, endQuoteIndex).match(/\$\{/) &&
-              removeBackticks
-            ) {
+              removeBackticks) {
               const edit = new vscode.WorkspaceEdit();
-
               edit.replace(
                 e.document.uri,
                 new vscode.Range(
@@ -87,14 +81,11 @@ export function activate(context: vscode.ExtensionContext) {
                 ),
                 quoteType === 'single' ? '\'' : '"',
               );
-
               await vscode.workspace.applyEdit(edit);
               return;
             }
-            if (
-              matches !== null &&
-              addBracketsToProps
-            ) {
+
+            if (matches !== null && addBracketsToProps) {
               if (changes.text === "{" && priorChar === "$") {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
@@ -129,15 +120,12 @@ export function activate(context: vscode.ExtensionContext) {
                   "`"
                 );
                 await vscode.workspace.applyEdit(edit);
-                if (vscode.window.activeTextEditor) {
-                  vscode.window.activeTextEditor.selections.push(new vscode.Selection(
-                    lineNumber,
-                    currentChar + 2,
-                    lineNumber,
-                    currentChar + 2
-                  ));
-                }
-                return;
+                selections.push(new vscode.Selection(
+                  lineNumber,
+                  currentChar + 2,
+                  lineNumber,
+                  currentChar + 2
+                ));
               } else if (changes.text === "{}" && priorChar === "$") {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
@@ -167,15 +155,12 @@ export function activate(context: vscode.ExtensionContext) {
                   "`"
                 );
                 await vscode.workspace.applyEdit(edit);
-                if (vscode.window.activeTextEditor) {
-                  vscode.window.activeTextEditor.selections.push(new vscode.Selection(
-                    lineNumber,
-                    currentChar + 2,
-                    lineNumber,
-                    currentChar + 2
-                  ));
-                }
-                return;
+                selections.push(new vscode.Selection(
+                  lineNumber,
+                  currentChar + 2,
+                  lineNumber,
+                  currentChar + 2
+                ));
               }
             } else if (
               !withinBackticks(lineText, currentChar, lineNumber, e.document)
@@ -199,19 +184,13 @@ export function activate(context: vscode.ExtensionContext) {
                   "`"
                 );
                 await vscode.workspace.applyEdit(edit);
-                if (vscode.window.activeTextEditor) {
-                  vscode.window.activeTextEditor.selections.push(new vscode.Selection(
-                    lineNumber,
-                    currentChar + 1,
-                    lineNumber,
-                    currentChar + 1
-                  ));
-                }
-              } else if (
-                changes.text === "{" &&
-                priorChar === "$" &&
-                autoClosingBrackets !== 'never'
-              ) {
+                selections.push(new vscode.Selection(
+                  lineNumber,
+                  currentChar + 1,
+                  lineNumber,
+                  currentChar + 1
+                ));
+              } else if (changes.text === "{" && priorChar === "$" && autoClosingBrackets !== 'never') {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
@@ -235,19 +214,13 @@ export function activate(context: vscode.ExtensionContext) {
                   "`"
                 );
                 await vscode.workspace.applyEdit(edit);
-                if (vscode.window.activeTextEditor) {
-                  vscode.window.activeTextEditor.selections.push(new vscode.Selection(
-                    lineNumber,
-                    currentChar + 1,
-                    lineNumber,
-                    currentChar + 1
-                  ));
-                }
-              } else if (
-                autoClosingBrackets === 'never' &&
-                priorChar === '$' &&
-                changes.text === '{'
-              ) {
+                selections.push(new vscode.Selection(
+                  lineNumber,
+                  currentChar + 1,
+                  lineNumber,
+                  currentChar + 1
+                ));
+              } else if (autoClosingBrackets === 'never' && priorChar === '$' && changes.text === '{') {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
@@ -266,17 +239,18 @@ export function activate(context: vscode.ExtensionContext) {
                   "`"
                 );
                 await vscode.workspace.applyEdit(edit);
-                if (vscode.window.activeTextEditor) {
-                  vscode.window.activeTextEditor.selections.push(new vscode.Selection(
-                    lineNumber,
-                    currentChar + 1,
-                    lineNumber,
-                    currentChar + 1
-                  ));
-                }
+                selections.push(new vscode.Selection(
+                  lineNumber,
+                  currentChar + 1,
+                  lineNumber,
+                  currentChar + 1
+                ));
               }
             }
           }
+        }
+        if (vscode.window.activeTextEditor) {
+          vscode.window.activeTextEditor.selections = selections;
         }
       } catch { }
     }
@@ -300,10 +274,7 @@ const notAComment = (
 };
 
 const withinBackticks = (line: string, currentCharIndex: number, cursorLine: number, document: vscode.TextDocument) => {
-  const withinLine =
-    line.substring(0, currentCharIndex).includes("`") &&
-    line.substring(currentCharIndex, line.length).includes("`")
-    ;
+  const withinLine = line.substring(0, currentCharIndex).includes("`") && line.substring(currentCharIndex, line.length).includes("`");
   if (withinLine) {
     return withinLine;
   } else {
@@ -398,6 +369,7 @@ const getStartQuote = (line: string, quoteChar: QuoteChar, convertOutermostQuote
     }
   }
 };
+
 const getEndQuote = (line: string, quoteChar: QuoteChar, convertOutermostQuotes?: boolean): number => {
   if (quoteChar === "both") {
     const double = convertOutermostQuotes ? line.toString().lastIndexOf('"') : line.toString().indexOf('"');
