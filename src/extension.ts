@@ -32,6 +32,10 @@ export function activate(context: vscode.ExtensionContext) {
           const currentChar = changes.range.start.character;
           const lineText = e.document.lineAt(lineNumber).text;
 
+          if (currentChar < 1) {
+            return;
+          }
+
           const startPosition = new vscode.Position(lineNumber, currentChar - 1);
           const endPosition = new vscode.Position(lineNumber, currentChar);
 
