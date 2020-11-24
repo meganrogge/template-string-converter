@@ -249,7 +249,7 @@ export function activate(context: vscode.ExtensionContext) {
             }
           }
         }
-        if (vscode.window.activeTextEditor) {
+        if (vscode.window.activeTextEditor && selections.length > 0) {
           vscode.window.activeTextEditor.selections = selections;
         }
       } catch { }
