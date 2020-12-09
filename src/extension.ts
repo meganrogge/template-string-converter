@@ -56,6 +56,8 @@ export function activate(context: vscode.ExtensionContext) {
 
           const priorChar = e.document.getText(new vscode.Range(startPosition, endPosition));
 
+          const nextTwoChars = e.document.getText(new vscode.Range(startPosition.translate(0, 2), endPosition.translate(0, 3)));
+
           if (
             notAComment(lineText, currentChar, startQuoteIndex, endQuoteIndex) &&
             lineText.charAt(startQuoteIndex) === lineText.charAt(endQuoteIndex)
@@ -225,6 +227,31 @@ export function activate(context: vscode.ExtensionContext) {
                   currentChar + 1
                 ));
               } else if (autoClosingBrackets === 'never' && priorChar === '$' && changes.text === '{') {
+                const edit = new vscode.WorkspaceEdit();
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    openingQuotePosition,
+                    openingQuotePosition.translate(undefined, 1)
+                  ),
+                  "`"
+                );
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    endQuotePosition,
+                    endQuotePosition.translate(undefined, 1)
+                  ),
+                  "`"
+                );
+                await vscode.workspace.applyEdit(edit);
+                selections.push(new vscode.Selection(
+                  lineNumber,
+                  currentChar + 1,
+                  lineNumber,
+                  currentChar + 1
+                ));
+              } else if (changes.text === '$' && nextTwoChars === '{}') {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
