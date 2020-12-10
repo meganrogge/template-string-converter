@@ -6,3 +6,6 @@
 
 ## [0.3.4]
 - Convert when `$` is inserted before `{}` 
+
+## [0.3.5]
+- Refresh icon
