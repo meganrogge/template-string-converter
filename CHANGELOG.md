@@ -9,3 +9,6 @@
 
 ## [0.3.5]
 - Use cool new icon created by @burkeholland 
+
+## [0.3.6]
+- Convert when `${` is inserted in a template string and don't convert `/${` 
