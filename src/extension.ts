@@ -51,6 +51,10 @@ export function activate(context: vscode.ExtensionContext) {
             convertOutermostQuotes
           );
 
+          if (startQuoteIndex < 0 || endQuoteIndex < 0) {
+            return;
+          }
+
           const openingQuotePosition = new vscode.Position(lineNumber, startQuoteIndex);
           const endQuotePosition = new vscode.Position(lineNumber, endQuoteIndex);
 
