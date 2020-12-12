@@ -51,10 +51,6 @@ export function activate(context: vscode.ExtensionContext) {
             convertOutermostQuotes
           );
 
-          if (startQuoteIndex < 0 || endQuoteIndex < 0) {
-            return;
-          }
-
           const openingQuotePosition = new vscode.Position(lineNumber, startQuoteIndex);
           const endQuotePosition = new vscode.Position(lineNumber, endQuoteIndex);
 
@@ -175,7 +171,7 @@ export function activate(context: vscode.ExtensionContext) {
             } else if (
               !withinBackticks(lineText, currentChar, lineNumber, e.document)
             ) {
-              if (changes.text === "{}" && priorChar === "$" && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== '\\'))) {
+              if (changes.text === "{}" && priorChar === "$") {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
@@ -200,7 +196,7 @@ export function activate(context: vscode.ExtensionContext) {
                   lineNumber,
                   currentChar + 1
                 ));
-              } else if (changes.text === "{" && priorChar === "$" && autoClosingBrackets !== 'never' && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== '\\'))) {
+              } else if (changes.text === "{" && priorChar === "$" && autoClosingBrackets !== 'never') {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
@@ -230,7 +226,7 @@ export function activate(context: vscode.ExtensionContext) {
                   lineNumber,
                   currentChar + 1
                 ));
-              } else if (autoClosingBrackets === 'never' && priorChar === '$' && changes.text === '{' && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== '\\'))) {
+              } else if (autoClosingBrackets === 'never' && priorChar === '$' && changes.text === '{') {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
@@ -255,7 +251,7 @@ export function activate(context: vscode.ExtensionContext) {
                   lineNumber,
                   currentChar + 1
                 ));
-              } else if (changes.text === '$' && nextTwoChars === '{}' && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== '\\'))) {
+              } else if (changes.text === '$' && nextTwoChars === '{}') {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
@@ -311,13 +307,6 @@ const notAComment = (
 const withinBackticks = (line: string, currentCharIndex: number, cursorLine: number, document: vscode.TextDocument) => {
   const withinLine = line.substring(0, currentCharIndex).includes("`") && line.substring(currentCharIndex, line.length).includes("`");
   if (withinLine) {
-    const startIndex = line.substring(0, currentCharIndex).indexOf("`");
-    const endIndex = currentCharIndex + line.substring(currentCharIndex, line.length).indexOf("`");
-    const startBracketIndex = line.substring(0, currentCharIndex).indexOf('${');
-    const endBracketIndex = currentCharIndex + line.substring(currentCharIndex, line.length).indexOf("}");
-    if (startBracketIndex && endBracketIndex) {
-      return startIndex >= startBracketIndex && endIndex <= endBracketIndex;
-    }
     return withinLine;
   } else {
     const lineIndex = cursorLine;
@@ -329,8 +318,7 @@ const withinBackticks = (line: string, currentCharIndex: number, cursorLine: num
 };
 
 const hasStartBacktick = (lineIndex: number, currentLine: string, document: vscode.TextDocument) => {
-  lineIndex -= 1;
-  while (lineIndex >= 0) {
+  while (lineIndex > 0) {
     const backTick = currentLine.indexOf("`");
     const semiColon = currentLine.indexOf(";");
     const comma = currentLine.indexOf(",");
@@ -347,6 +335,7 @@ const hasStartBacktick = (lineIndex: number, currentLine: string, document: vsco
     } else if (semiColon >= 0 || comma >= 0) {
       return false;
     }
+    lineIndex -= 1;
     currentLine = document.lineAt(lineIndex).text;
   }
   return false;
