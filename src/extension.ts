@@ -175,7 +175,7 @@ export function activate(context: vscode.ExtensionContext) {
             } else if (
               !withinBackticks(lineText, currentChar, lineNumber, e.document)
             ) {
-              if (changes.text === "{}" && priorChar === "$") {
+              if (changes.text === "{}" && priorChar === "$" && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== '\\'))) {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
@@ -200,7 +200,7 @@ export function activate(context: vscode.ExtensionContext) {
                   lineNumber,
                   currentChar + 1
                 ));
-              } else if (changes.text === "{" && priorChar === "$" && autoClosingBrackets !== 'never') {
+              } else if (changes.text === "{" && priorChar === "$" && autoClosingBrackets !== 'never' && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== '\\'))) {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
@@ -230,7 +230,7 @@ export function activate(context: vscode.ExtensionContext) {
                   lineNumber,
                   currentChar + 1
                 ));
-              } else if (autoClosingBrackets === 'never' && priorChar === '$' && changes.text === '{') {
+              } else if (autoClosingBrackets === 'never' && priorChar === '$' && changes.text === '{' && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== '\\'))) {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
@@ -255,7 +255,7 @@ export function activate(context: vscode.ExtensionContext) {
                   lineNumber,
                   currentChar + 1
                 ));
-              } else if (changes.text === '$' && nextTwoChars === '{}') {
+              } else if (changes.text === '$' && nextTwoChars === '{}' && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== '\\'))) {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
@@ -311,6 +311,13 @@ const notAComment = (
 const withinBackticks = (line: string, currentCharIndex: number, cursorLine: number, document: vscode.TextDocument) => {
   const withinLine = line.substring(0, currentCharIndex).includes("`") && line.substring(currentCharIndex, line.length).includes("`");
   if (withinLine) {
+    const startIndex = line.substring(0, currentCharIndex).indexOf("`");
+    const endIndex = currentCharIndex + line.substring(currentCharIndex, line.length).indexOf("`");
+    const startBracketIndex = line.substring(0, currentCharIndex).indexOf('${');
+    const endBracketIndex = currentCharIndex + line.substring(currentCharIndex, line.length).indexOf("}");
+    if (startBracketIndex && endBracketIndex) {
+      return startIndex >= startBracketIndex && endIndex <= endBracketIndex;
+    }
     return withinLine;
   } else {
     const lineIndex = cursorLine;
@@ -322,7 +329,8 @@ const withinBackticks = (line: string, currentCharIndex: number, cursorLine: num
 };
 
 const hasStartBacktick = (lineIndex: number, currentLine: string, document: vscode.TextDocument) => {
-  while (lineIndex > 0) {
+  lineIndex -= 1;
+  while (lineIndex >= 0) {
     const backTick = currentLine.indexOf("`");
     const semiColon = currentLine.indexOf(";");
     const comma = currentLine.indexOf(",");
@@ -339,8 +347,8 @@ const hasStartBacktick = (lineIndex: number, currentLine: string, document: vsco
     } else if (semiColon >= 0 || comma >= 0) {
       return false;
     }
-    lineIndex -= 1;
     currentLine = document.lineAt(lineIndex).text;
+    lineIndex -= 1;
   }
   return false;
 };
