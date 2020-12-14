@@ -12,3 +12,6 @@
 
 ## [0.3.6]
 - Convert when `${` is inserted in a template string and don't convert `/${` 
+
+## [0.4.3]
+- Convert multi-line JSX props
