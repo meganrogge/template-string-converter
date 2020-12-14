@@ -277,9 +277,9 @@ export function activate(context: vscode.ExtensionContext) {
                 await vscode.workspace.applyEdit(edit);
                 selections.push(new vscode.Selection(
                   lineNumber,
-                  currentChar + 1,
+                  currentChar + 2,
                   lineNumber,
-                  currentChar + 1
+                  currentChar + 2
                 ));
               } else if (changes.text === '$' && nextChar === '{' && autoClosingBrackets !== 'never' && (currentChar < 1 || (lineText.charAt(currentChar - 1) !== "\\"))) {
                 const edit = new vscode.WorkspaceEdit();
