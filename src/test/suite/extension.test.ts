@@ -4,7 +4,6 @@ import * as vscode from 'vscode';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
-
 	let baseCase = "\"$\"";
 	test('Base case', () => {
 		return withRandomFileEditor(baseCase, 'ts', async (editor, doc) => {
@@ -14,7 +13,6 @@ suite('Extension Test Suite', () => {
 			assert.equal(doc.getText(), "`${}`");
 		});
 	});
-
 	let spacesBeforeContents = "\"     $\"";
 	test('Spaces before', () => {
 		return withRandomFileEditor(spacesBeforeContents, 'ts', async (editor, doc) => {
@@ -23,7 +21,6 @@ suite('Extension Test Suite', () => {
 			assert.equal(doc.getText(), "`     ${}`");
 		});
 	});
-
 	let spacesAfterContents = "\"$    \"";
 	test('Spaces after', () => {
 		return withRandomFileEditor(spacesAfterContents, 'ts', async (editor, doc) => {
@@ -32,7 +29,6 @@ suite('Extension Test Suite', () => {
 			assert.equal(doc.getText(), "`${}    `");
 		});
 	});
-
 	let wordsBeforeContents = "\"hello$\"";
 	test('Words before', () => {
 		return withRandomFileEditor(wordsBeforeContents, 'ts', async (editor, doc) => {
@@ -41,7 +37,6 @@ suite('Extension Test Suite', () => {
 			assert.equal(doc.getText(), "`hello${}`");
 		});
 	});
-
 	let wordsAfterContents = "\"$hello\"";
 	test('Words after', () => {
 		return withRandomFileEditor(wordsAfterContents, 'ts', async (editor, doc) => {
@@ -66,12 +61,12 @@ suite('Extension Test Suite', () => {
 			assert.notEqual(doc.getText(), "const foo = `${var}${var2 ? `prefix ${var2}` : `${}`}`");
 		});
 	});
-	let isEscaped = "\\$";
+	let isEscaped = '"\\$"';
 	test('Has escape char', () => {
 		return withRandomFileEditor(isEscaped, 'ts', async (editor, doc) => {
 			await editor.insertSnippet(new vscode.SnippetString("{"), new vscode.Position(0, 3));
 			await delay(500);
-			assert.strictEqual(doc.getText(), "\\${");
+			assert.strictEqual(doc.getText(), '"\\${"');
 		});
 	});
 });

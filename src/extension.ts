@@ -60,6 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
 
           const priorChar = e.document.getText(new vscode.Range(startPosition, endPosition));
 
+          const nextChar = e.document.getText(new vscode.Range(startPosition.translate(0, 2), endPosition.translate(0, 2)));
           const nextTwoChars = e.document.getText(new vscode.Range(startPosition.translate(0, 2), endPosition.translate(0, 3)));
 
           if (
@@ -175,7 +176,7 @@ export function activate(context: vscode.ExtensionContext) {
             } else if (
               !withinBackticks(lineText, currentChar, lineNumber, e.document)
             ) {
-              if (changes.text === "{}" && priorChar === "$" && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== '\\'))) {
+              if (changes.text === "{}" && priorChar === "$" && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== "\\"))) {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
@@ -200,7 +201,7 @@ export function activate(context: vscode.ExtensionContext) {
                   lineNumber,
                   currentChar + 1
                 ));
-              } else if (changes.text === "{" && priorChar === "$" && autoClosingBrackets !== 'never' && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== '\\'))) {
+              } else if (changes.text === "{" && priorChar === "$" && autoClosingBrackets !== 'never' && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== "\\"))) {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
@@ -230,7 +231,7 @@ export function activate(context: vscode.ExtensionContext) {
                   lineNumber,
                   currentChar + 1
                 ));
-              } else if (autoClosingBrackets === 'never' && priorChar === '$' && changes.text === '{' && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== '\\'))) {
+              } else if (autoClosingBrackets === 'never' && priorChar === '$' && changes.text === '{' && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== "\\"))) {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
@@ -255,7 +256,7 @@ export function activate(context: vscode.ExtensionContext) {
                   lineNumber,
                   currentChar + 1
                 ));
-              } else if (changes.text === '$' && nextTwoChars === '{}' && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== '\\'))) {
+              } else if (changes.text === '$' && nextTwoChars === '{}' && (currentChar < 1 || (lineText.charAt(currentChar - 1) !== "\\"))) {
                 const edit = new vscode.WorkspaceEdit();
                 edit.replace(
                   e.document.uri,
@@ -279,6 +280,36 @@ export function activate(context: vscode.ExtensionContext) {
                   currentChar + 1,
                   lineNumber,
                   currentChar + 1
+                ));
+              } else if (changes.text === '$' && nextChar === '{' && autoClosingBrackets !== 'never' && (currentChar < 1 || (lineText.charAt(currentChar - 1) !== "\\"))) {
+                const edit = new vscode.WorkspaceEdit();
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    openingQuotePosition,
+                    openingQuotePosition.translate(undefined, 1)
+                  ),
+                  "`"
+                );
+                edit.insert(
+                  e.document.uri,
+                  endPosition.translate(undefined, 2),
+                  "}"
+                );
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    endQuotePosition,
+                    endQuotePosition.translate(undefined, 1)
+                  ),
+                  "`"
+                );
+                await vscode.workspace.applyEdit(edit);
+                selections.push(new vscode.Selection(
+                  lineNumber,
+                  currentChar + 2,
+                  lineNumber,
+                  currentChar + 2
                 ));
               }
             }
