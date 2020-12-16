@@ -353,7 +353,7 @@ const withinBackticks = (line: string, currentCharIndex: number, cursorLine: num
     const endIndex = currentCharIndex + line.substring(currentCharIndex, line.length).indexOf("`");
     const startBracketIndex = line.substring(0, currentCharIndex).indexOf('${');
     const endBracketIndex = currentCharIndex + line.substring(currentCharIndex, line.length).indexOf("}");
-    if (startBracketIndex && endBracketIndex) {
+    if (startBracketIndex >= 0 && endBracketIndex > 0) {
       return startIndex >= startBracketIndex && endIndex <= endBracketIndex;
     }
     return withinLine;
