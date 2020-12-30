@@ -13,4 +13,5 @@ Autocorrect from quotes to backticks within javascript and typescript files
 * `template-string-converter.validLanguages`: an array of valid languages to run the extension on
 * `template-string-converter.quoteType`: both, single, or double 
 * `template-string-converter.convertOutermostQuotes`: true/false for nested strings, converts the outermost quotes to backticks
+* `template-string-converter.convertWithinTemplateString`: true/false convert to template strings within a template string
 * `template-string-converter.addBracketsToProps`: true/false as shown below ![typing a dollar sign then open curly brace with addBracketsToProps set to true converts the quotes to backticks and adds brackets around the property](https://raw.githubusercontent.com/meganrogge/template-string-converter/master/demo2.gif)

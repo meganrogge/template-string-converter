@@ -15,6 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
     const removeBackticks = configuration.get<boolean>("template-string-converter.autoRemoveTemplateString");
     const autoClosingBrackets = configuration.get<{}>("editor.autoClosingBrackets");
     const convertOutermostQuotes = configuration.get<boolean>("template-string-converter.convertOutermostQuotes");
+    const convertWithinTemplateString = configuration.get<boolean>("template-string-converter.convertWithinTemplateString");
 
     if (
       enabled &&
@@ -78,7 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
 
             const matches = multiLineText.match(regex);
 
-            if (withinBackticks(lineText, currentChar, lineNumber, e.document) &&
+            if (withinBackticks(lineText, currentChar, lineNumber, e.document, convertWithinTemplateString ?? true) &&
               !lineText.slice(startQuoteIndex + 1, endQuoteIndex).match(/\$\{/) &&
               removeBackticks) {
               const edit = new vscode.WorkspaceEdit();
@@ -181,7 +182,7 @@ export function activate(context: vscode.ExtensionContext) {
                 ));
               }
             } else if (
-              !withinBackticks(lineText, currentChar, lineNumber, e.document)
+              !withinBackticks(lineText, currentChar, lineNumber, e.document, convertWithinTemplateString ?? true)
             ) {
               if (changes.text === "{}" && priorChar === "$" && (currentChar < 2 || (lineText.charAt(currentChar - 2) !== "\\"))) {
                 const edit = new vscode.WorkspaceEdit();
@@ -346,14 +347,14 @@ const notAComment = (
   }
 };
 
-const withinBackticks = (line: string, currentCharIndex: number, cursorLine: number, document: vscode.TextDocument) => {
+const withinBackticks = (line: string, currentCharIndex: number, cursorLine: number, document: vscode.TextDocument, convertWithinTemplateString: boolean) => {
   const withinLine = line.substring(0, currentCharIndex).includes("`") && line.substring(currentCharIndex, line.length).includes("`");
   if (withinLine) {
     const startIndex = line.substring(0, currentCharIndex).indexOf("`");
     const endIndex = currentCharIndex + line.substring(currentCharIndex, line.length).indexOf("`");
     const startBracketIndex = line.substring(0, currentCharIndex).indexOf('${');
     const endBracketIndex = currentCharIndex + line.substring(currentCharIndex, line.length).indexOf("}");
-    if (startBracketIndex >= 0 && endBracketIndex > 0) {
+    if (convertWithinTemplateString && startBracketIndex >= 0 && endBracketIndex > 0) {
       return startIndex >= startBracketIndex && endIndex <= endBracketIndex;
     }
     return withinLine;

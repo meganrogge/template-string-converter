@@ -60,6 +60,11 @@
             "description": "for nested strings, converts the outermost quotes to backticks",
             "default": false
           },
+          "template-string-converter.convertWithinTemplateString": {
+            "type": "boolean",
+            "description": "convert to template strings within a template string",
+            "default": true
+          },
           "template-string-converter.validLanguages": {
             "type": "array",
             "description": "extension runs on these languages",

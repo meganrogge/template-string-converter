@@ -15,3 +15,6 @@
 
 ## [0.4.3]
 - Convert multi-line JSX props
+
+## [0.4.4]
+- Add svelte to accepted languages add and setting to toggle conversion when within template string
