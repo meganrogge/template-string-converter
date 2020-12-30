@@ -64,6 +64,7 @@
             "type": "array",
             "description": "extension runs on these languages",
             "default": [
+              "svelte",
               "typescript",
               "javascript",
               "typescriptreact",
