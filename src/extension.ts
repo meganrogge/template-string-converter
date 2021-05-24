@@ -12,7 +12,6 @@ export function activate(context: vscode.ExtensionContext) {
     const changes = e.contentChanges[0];
     const validLanguages = configuration.get<string[]>("template-string-converter.validLanguages");
     const addBracketsToProps = configuration.get<boolean>("template-string-converter.addBracketsToProps");
-    const removeBackticks = configuration.get<boolean>("template-string-converter.autoRemoveTemplateString");
     const autoClosingBrackets = configuration.get<{}>("editor.autoClosingBrackets");
     const convertOutermostQuotes = configuration.get<boolean>("template-string-converter.convertOutermostQuotes");
     const convertWithinTemplateString = configuration.get<boolean>("template-string-converter.convertWithinTemplateString");
@@ -25,9 +24,11 @@ export function activate(context: vscode.ExtensionContext) {
     ) {
       try {
 
-        let selections = [];
-
-        for (const selection of vscode.window.activeTextEditor!.selections) {
+        let selections: vscode.Selection[] = [];
+        if (!vscode.window.activeTextEditor || vscode.window.activeTextEditor.selections.length === 0) {
+          return;
+        }
+        for (const selection of vscode.window.activeTextEditor.selections) {
 
           const lineNumber = selection.start.line;
           const currentChar = changes.range.start.character;
@@ -79,30 +80,6 @@ export function activate(context: vscode.ExtensionContext) {
 
             const matches = multiLineText.match(regex);
 
-            if (withinBackticks(lineText, currentChar, lineNumber, e.document, convertWithinTemplateString ?? true) &&
-              !lineText.slice(startQuoteIndex + 1, endQuoteIndex).match(/\$\{/) &&
-              removeBackticks) {
-              const edit = new vscode.WorkspaceEdit();
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  openingQuotePosition,
-                  openingQuotePosition.translate(undefined, 1)
-                ),
-                quoteType === 'single' ? '\'' : '"',
-              );
-
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  endQuotePosition,
-                  endQuotePosition.translate(undefined, 1)
-                ),
-                quoteType === 'single' ? '\'' : '"',
-              );
-              await vscode.workspace.applyEdit(edit);
-              return;
-            }
 
             if (matches !== null && addBracketsToProps) {
               if (changes.text === "{" && priorChar === "$") {
