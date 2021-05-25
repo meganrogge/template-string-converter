@@ -25,8 +25,10 @@ export function activate(context: vscode.ExtensionContext) {
     ) {
       try {
 
-        let selections = [];
-
+        let selections: vscode.Selection[] = [];
+        if (!vscode.window.activeTextEditor || vscode.window.activeTextEditor.selections.length === 0) {
+          return;
+        }
         for (const selection of vscode.window.activeTextEditor!.selections) {
 
           const lineNumber = selection.start.line;
