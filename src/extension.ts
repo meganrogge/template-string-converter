@@ -52,6 +52,8 @@ export function activate(context: vscode.ExtensionContext) {
             convertOutermostQuotes
           );
 
+          const textInString = lineText.slice(startQuoteIndex + 1, endQuoteIndex);
+
           if (startQuoteIndex < 0 || endQuoteIndex < 0) {
             return;
           }
@@ -79,10 +81,12 @@ export function activate(context: vscode.ExtensionContext) {
 
             const matches = multiLineText.match(regex);
 
-            if (withinBackticks(lineText, currentChar, lineNumber, e.document, convertWithinTemplateString ?? true) &&
-              !lineText.slice(startQuoteIndex + 1, endQuoteIndex).match(/\$\{/) &&
-              removeBackticks) {
+            if (withinBackticks(lineText, currentChar, lineNumber, e.document, convertWithinTemplateString ?? true) 
+              && !textInString.includes('${') 
+              && removeBackticks 
+              && !changes.text) {
               const edit = new vscode.WorkspaceEdit();
+
               edit.replace(
                 e.document.uri,
                 new vscode.Range(
@@ -100,7 +104,24 @@ export function activate(context: vscode.ExtensionContext) {
                 ),
                 quoteType === 'single' ? '\'' : '"',
               );
+
               await vscode.workspace.applyEdit(edit);
+
+              if (textInString.indexOf('$') === textInString.length - 1) {
+                const editor = vscode.window.activeTextEditor;
+
+                if (!editor) {
+                  return;
+                }
+
+                const position = editor.selection.active;
+                console.log(textInString, startQuoteIndex);
+                const newPosition = position.with(position.line, startQuoteIndex + textInString.length + 1);
+                const newSelection = new vscode.Selection(newPosition, newPosition);
+
+                editor.selection = newSelection;
+              }
+
               return;
             }
 
