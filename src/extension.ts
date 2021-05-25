@@ -115,7 +115,6 @@ export function activate(context: vscode.ExtensionContext) {
                 }
 
                 const position = editor.selection.active;
-                console.log(textInString, startQuoteIndex);
                 const newPosition = position.with(position.line, startQuoteIndex + textInString.length + 1);
                 const newSelection = new vscode.Selection(newPosition, newPosition);
 
