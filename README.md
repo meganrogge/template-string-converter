@@ -7,7 +7,7 @@ This [extension](https://marketplace.visualstudio.com/items?itemName=meganrogge.
 Autocorrect from quotes to backticks within javascript and typescript files
 ![typing a dollar sign then open curly brace within a string converts the quotes to backticks](https://raw.githubusercontent.com/meganrogge/template-string-converter/master/demo.gif)
 
-## Extension Settings
+## Settings
 
 * `template-string-converter.enable`: enable/disable this extension
 * `template-string-converter.validLanguages`: an array of valid languages to run the extension on
