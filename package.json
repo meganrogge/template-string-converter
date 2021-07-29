@@ -1,7 +1,7 @@
 {
   "name": "template-string-converter",
   "displayName": "Template String Converter",
-  "description": "Converts quotes to backticks when a $ and { are entered within quotes in JavaScript and TypeScript files",
+  "description": "Converts a string to a template string when ${ is typed",
   "version": "0.5.1",
   "engines": {
     "vscode": "^1.49.0"
@@ -17,7 +17,7 @@
   ],
   "license": "MIT",
   "galleryBanner": {
-    "color": "#f28500",
+    "color": "#e30b5d",
     "theme": "dark"
   },
   "main": "./out/extension.js",
@@ -72,7 +72,7 @@
           },
           "template-string-converter.validLanguages": {
             "type": "array",
-            "description": "extension runs on these languages",
+            "description": "the extension runs on these languages",
             "default": [
               "svelte",
               "typescript",
