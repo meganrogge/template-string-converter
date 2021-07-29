@@ -2,7 +2,8 @@ import * as vscode from "vscode";
 
 type QuoteType = "both" | "single" | "double";
 type QuoteChar = "both" | `'` | `"`;
-//
+type Position = "start" | "end";
+
 export function activate(context: vscode.ExtensionContext) {
   vscode.workspace.onDidChangeTextDocument(async (e) => {
 
@@ -29,8 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (!vscode.window.activeTextEditor || vscode.window.activeTextEditor.selections.length === 0) {
           return;
         }
-        for (const selection of vscode.window.activeTextEditor!.selections) {
-
+        for (const selection of vscode.window.activeTextEditor.selections) {
           const lineNumber = selection.start.line;
           const currentChar = changes.range.start.character;
           const lineText = e.document.lineAt(lineNumber).text;
@@ -42,29 +42,19 @@ export function activate(context: vscode.ExtensionContext) {
           const startPosition = new vscode.Position(lineNumber, currentChar - 1);
           const endPosition = new vscode.Position(lineNumber, currentChar);
 
-          const startQuoteIndex = getStartQuote(
-            lineText.substring(0, currentChar),
-            getQuoteChar(quoteType),
-            convertOutermostQuotes
-          );
-
-          const endQuoteIndex = currentChar + 1 + getEndQuote(
-            lineText.substring(currentChar + 1, lineText.length),
-            getQuoteChar(quoteType),
-            convertOutermostQuotes
-          );
-
-          const textInString = lineText.slice(startQuoteIndex + 1, endQuoteIndex);
-
-          if (startQuoteIndex < 0 || endQuoteIndex < 0) {
+          const startQuoteIndex = getQuoteIndex(lineText.substring(0, currentChar), getQuoteChar(quoteType), 'start', convertOutermostQuotes);
+          if (startQuoteIndex < 0) {
             return;
           }
 
-          const openingQuotePosition = new vscode.Position(lineNumber, startQuoteIndex);
+          const endQuoteIndex = currentChar + 1 + getQuoteIndex(lineText.substring(currentChar + 1, lineText.length), getQuoteChar(quoteType), 'end', convertOutermostQuotes);
+
+          const textInString = lineText.slice(startQuoteIndex + 1, endQuoteIndex);
+
+          const startQuotePosition = new vscode.Position(lineNumber, startQuoteIndex);
           const endQuotePosition = new vscode.Position(lineNumber, endQuoteIndex);
 
           const priorChar = e.document.getText(new vscode.Range(startPosition, endPosition));
-
           const nextChar = e.document.getText(new vscode.Range(startPosition.translate(0, 2), endPosition.translate(0, 2)));
           const nextTwoChars = e.document.getText(new vscode.Range(startPosition.translate(0, 2), endPosition.translate(0, 3)));
 
@@ -92,8 +82,8 @@ export function activate(context: vscode.ExtensionContext) {
               edit.replace(
                 e.document.uri,
                 new vscode.Range(
-                  openingQuotePosition,
-                  openingQuotePosition.translate(undefined, 1)
+                  startQuotePosition,
+                  startQuotePosition.translate(undefined, 1)
                 ),
                 quoteType === 'single' ? '\'' : '"',
               );
@@ -132,8 +122,8 @@ export function activate(context: vscode.ExtensionContext) {
                 edit.replace(
                   e.document.uri,
                   new vscode.Range(
-                    openingQuotePosition,
-                    openingQuotePosition.translate(undefined, 1)
+                    startQuotePosition,
+                    startQuotePosition.translate(undefined, 1)
                   ),
                   "{"
                 );
@@ -172,8 +162,8 @@ export function activate(context: vscode.ExtensionContext) {
                 edit.replace(
                   e.document.uri,
                   new vscode.Range(
-                    openingQuotePosition,
-                    openingQuotePosition.translate(undefined, 1)
+                    startQuotePosition,
+                    startQuotePosition.translate(undefined, 1)
                   ),
                   "{"
                 );
@@ -211,8 +201,8 @@ export function activate(context: vscode.ExtensionContext) {
                 edit.replace(
                   e.document.uri,
                   new vscode.Range(
-                    openingQuotePosition,
-                    openingQuotePosition.translate(undefined, 1)
+                    startQuotePosition,
+                    startQuotePosition.translate(undefined, 1)
                   ),
                   "`"
                 );
@@ -236,8 +226,8 @@ export function activate(context: vscode.ExtensionContext) {
                 edit.replace(
                   e.document.uri,
                   new vscode.Range(
-                    openingQuotePosition,
-                    openingQuotePosition.translate(undefined, 1)
+                    startQuotePosition,
+                    startQuotePosition.translate(undefined, 1)
                   ),
                   "`"
                 );
@@ -266,8 +256,8 @@ export function activate(context: vscode.ExtensionContext) {
                 edit.replace(
                   e.document.uri,
                   new vscode.Range(
-                    openingQuotePosition,
-                    openingQuotePosition.translate(undefined, 1)
+                    startQuotePosition,
+                    startQuotePosition.translate(undefined, 1)
                   ),
                   "`"
                 );
@@ -291,8 +281,8 @@ export function activate(context: vscode.ExtensionContext) {
                 edit.replace(
                   e.document.uri,
                   new vscode.Range(
-                    openingQuotePosition,
-                    openingQuotePosition.translate(undefined, 1)
+                    startQuotePosition,
+                    startQuotePosition.translate(undefined, 1)
                   ),
                   "`"
                 );
@@ -316,8 +306,8 @@ export function activate(context: vscode.ExtensionContext) {
                 edit.replace(
                   e.document.uri,
                   new vscode.Range(
-                    openingQuotePosition,
-                    openingQuotePosition.translate(undefined, 1)
+                    startQuotePosition,
+                    startQuotePosition.translate(undefined, 1)
                   ),
                   "`"
                 );
@@ -353,17 +343,9 @@ export function activate(context: vscode.ExtensionContext) {
   });
 }
 
-const notAComment = (
-  line: string,
-  charIndex: number,
-  startQuoteIndex: number,
-  endquoteIndex: number
-) => {
+const notAComment = (line: string, charIndex: number, startQuoteIndex: number, endquoteIndex: number) => {
   if (line.substring(0, charIndex).includes("//")) {
-    return (
-      line.substring(0, charIndex).indexOf("//") > startQuoteIndex &&
-      line.substring(0, charIndex).indexOf("//") < endquoteIndex
-    );
+    return line.substring(0, charIndex).indexOf("//") > startQuoteIndex && line.substring(0, charIndex).indexOf("//") < endquoteIndex;
   } else {
     return true;
   }
@@ -385,13 +367,15 @@ const withinBackticks = (line: string, currentCharIndex: number, cursorLine: num
     const currentLine = document.lineAt(lineIndex).text;
     const startOfLine = currentLine.substring(0, currentCharIndex);
     const endOfLine = currentLine.substring(currentCharIndex, line.length);
-    return hasStartBacktick(lineIndex, startOfLine, document) && hasEndBacktick(lineIndex, endOfLine, document);
+    return hasBacktick(lineIndex, startOfLine, document, 'start') && hasBacktick(lineIndex, endOfLine, document, 'end');
   }
 };
 
-const hasStartBacktick = (lineIndex: number, currentLine: string, document: vscode.TextDocument) => {
-  lineIndex -= 1;
-  while (lineIndex >= 0) {
+const hasBacktick = (lineIndex: number, currentLine: string, document: vscode.TextDocument, position: Position) => {
+  if (position = 'start') {
+    lineIndex -= 1;
+  }
+  while (position === 'start' ? lineIndex >= 0 : lineIndex < document.lineCount) {
     const backTick = currentLine.indexOf("`");
     const semiColon = currentLine.indexOf(";");
     const comma = currentLine.indexOf(",");
@@ -408,34 +392,10 @@ const hasStartBacktick = (lineIndex: number, currentLine: string, document: vsco
     } else if (semiColon >= 0 || comma >= 0) {
       return false;
     }
-    currentLine = document.lineAt(lineIndex).text;
-    lineIndex -= 1;
-  }
-  return false;
-};
-
-const hasEndBacktick = (lineIndex: number, currentLine: string, document: vscode.TextDocument) => {
-  while (lineIndex < document.lineCount) {
-    const backTick = currentLine.indexOf("`");
-    const semiColon = currentLine.indexOf(";");
-    const comma = currentLine.indexOf(",");
-    if (backTick >= 0 && semiColon >= 0 && semiColon > backTick) {
-      return true;
-    } else if (backTick >= 0 && semiColon >= 0 && semiColon < backTick) {
-      return false;
-    } else if (backTick >= 0 && comma >= 0 && comma > backTick) {
-      return true;
-    } else if (backTick >= 0 && comma >= 0 && comma < backTick) {
-      return false;
-    } else if (backTick >= 0) {
-      return true;
-    } else if (semiColon >= 0) {
-      return false;
-    } else if (comma >= 0) {
-      return false;
+    if (lineIndex > -1) {
+      currentLine = document.lineAt(lineIndex).text;
     }
-    lineIndex += 1;
-    currentLine = document.lineAt(lineIndex).text;
+    position === 'start' ? lineIndex -= 1 : lineIndex += 1;;
   }
   return false;
 };
@@ -450,14 +410,15 @@ const getQuoteChar = (type: QuoteType): QuoteChar => {
   }
 };
 
-const getStartQuote = (line: string, quoteChar: QuoteChar, convertOutermostQuotes?: boolean): number => {
+const getQuoteIndex = (line: string, quoteChar: QuoteChar, position: Position, convertOutermostQuotes?: boolean): number => {
+  const findFirstIndex = (position === 'start' && convertOutermostQuotes) || (position === 'end' && !convertOutermostQuotes);
   if (quoteChar === "both") {
-    const double = convertOutermostQuotes ? line.toString().indexOf('"') : line.toString().lastIndexOf('"');
-    const single = convertOutermostQuotes ? line.toString().indexOf("'") : line.toString().lastIndexOf("'");
-    const back = convertOutermostQuotes ? line.toString().indexOf('`') : line.toString().lastIndexOf("`");
+    const double = findFirstIndex ? line.toString().indexOf('"') : line.toString().lastIndexOf('"');
+    const single = findFirstIndex ? line.toString().indexOf("'") : line.toString().lastIndexOf("'");
+    const back = findFirstIndex ? line.toString().indexOf('`') : line.toString().lastIndexOf("`");
     if (double >= 0 && single >= 0) {
       // nested quotes
-      return !convertOutermostQuotes ? double : double < single ? double : single;
+      return findFirstIndex ? Math.min(double, single) : Math.max(double, single);
     } else if (double >= 0) {
       return double;
     } else if (single >= 0) {
@@ -466,36 +427,10 @@ const getStartQuote = (line: string, quoteChar: QuoteChar, convertOutermostQuote
       return back;
     }
   } else {
-    if (convertOutermostQuotes) {
+  if (findFirstIndex) {
       return line.toString().indexOf('`') !== -1 ? line.toString().indexOf('`') : line.toString().indexOf(quoteChar);
     } else {
       return line.toString().lastIndexOf('`') !== -1 ? line.toString().lastIndexOf('`') : line.toString().lastIndexOf(quoteChar);
-    }
-  }
-};
-
-const getEndQuote = (line: string, quoteChar: QuoteChar, convertOutermostQuotes?: boolean): number => {
-  if (quoteChar === "both") {
-    const double = convertOutermostQuotes ? line.toString().lastIndexOf('"') : line.toString().indexOf('"');
-    const single = convertOutermostQuotes ? line.toString().lastIndexOf("'") : line.toString().indexOf("'");
-    const back = convertOutermostQuotes ? line.toString().lastIndexOf('`') : line.toString().indexOf("`");
-    if (double >= 0 && single >= 0) {
-      // nested quotes
-      return !convertOutermostQuotes ? double : double > single ? double : single;
-    } else if (double >= 0) {
-      return double;
-    } else if (single >= 0) {
-      return single;
-    } else if (back >= 0) {
-      return back;
-    } else {
-      return -1;
-    }
-  } else {
-    if (convertOutermostQuotes) {
-      return line.toString().lastIndexOf('`') !== -1 ? line.toString().lastIndexOf('`') : line.toString().lastIndexOf(quoteChar);
-    } else {
-      return line.toString().indexOf('`') !== -1 ? line.toString().indexOf('`') : line.toString().indexOf(quoteChar);
     }
   }
 };
