@@ -63,7 +63,7 @@ export function activate(context: vscode.ExtensionContext) {
             lineText.charAt(startQuoteIndex) === lineText.charAt(endQuoteIndex)
           ) {
 
-            const regex = new RegExp(/<[^<]+=[^<]*(("|')[^<]*(\${}|\${)[^<]*("|'))[^<]*>/gm);
+            const regex = new RegExp(/<\/?(?:[\w.:-]+\s*(?:\s+(?:[\w.:$-]+(?:=(?:"(?:\\[^]|[^\\"])*"|'(?:\\[^]|[^\\'])*'|[^\s{'">=]+|\{(?:\{(?:\{[^{}]*\}|[^{}])*\}|[^{}])+\}))?|\{\s*\.{3}\s*[a-z_$][\w$]*(?:\.[a-z_$][\w$]*)*\s*\}))*\s*\/?)?>/gm);
 
             // keep the search reasonable
             const startLine = lineNumber > 20 ? lineNumber - 20 : 0;
