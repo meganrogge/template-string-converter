@@ -21,15 +21,14 @@
     "theme": "dark"
   },
   "main": "./out/extension.js",
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "lint": "eslint src --ext ts",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "test": "node ./out/test/runTest.js"
-  },
   "publisher": "meganrogge",
+  "browser": "./out/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run package-web",
+    "compile-web": "webpack",
+    "watch-web": "webpack --watch",
+    "package-web": "webpack --mode production --devtool hidden-source-map"
+  },
   "contributes": {
     "configuration": [
       {
@@ -93,17 +92,18 @@
     "url": "https://github.com/meganrogge/template-string-converter/issues"
   },
   "devDependencies": {
-    "@types/vscode": "^1.49.0",
     "@types/glob": "^7.1.3",
     "@types/mocha": "^8.0.0",
     "@types/node": "^14.0.27",
-    "eslint": "^7.6.0",
+    "@types/vscode": "^1.49.0",
     "@typescript-eslint/eslint-plugin": "^3.8.0",
     "@typescript-eslint/parser": "^3.8.0",
+    "eslint": "^8.3.0",
     "glob": "^7.1.6",
-    "mocha": "^8.1.3",
+    "mocha": "^9.1.3",
     "typescript": "^4.0.2",
-    "vscode-test": "^1.4.0"
+    "vscode-test": "^1.4.0",
+    "webpack-cli": "^4.9.1"
   },
   "icon": "src/images/logo.png",
   "keywords": [
@@ -116,5 +116,9 @@
     "embed",
     "embedder",
     "autocorrect"
-  ]
+  ],
+  "dependencies": {
+    "ts-loader": "^9.2.6",
+    "webpack": "^5.64.2"
+  }
 }
