@@ -24,11 +24,11 @@
   "publisher": "meganrogge",
   "browser": "./out/extension.js",
   "scripts": {
-    "vscode:prepublish": "npm run package-web",
-    "compile-web": "webpack",
-    "watch-web": "webpack --watch",
-    "package-web": "webpack --mode production --devtool hidden-source-map"
-  },
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"lint": "eslint . --ext .ts,.tsx"
+	},
   "contributes": {
     "configuration": [
       {
@@ -119,6 +119,7 @@
   ],
   "dependencies": {
     "ts-loader": "^9.2.6",
+    "vsce": "^2.5.3",
     "webpack": "^5.64.2"
   }
 }
