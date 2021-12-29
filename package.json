@@ -2,7 +2,7 @@
   "name": "template-string-converter",
   "displayName": "Template String Converter",
   "description": "Converts a string to a template string when ${ is typed",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "engines": {
     "vscode": "^1.49.0"
   },

@@ -71,7 +71,7 @@ let previousDocument: DocumentCopy | undefined = undefined;
             if (!!previousDocument) {
             const current = getTemplateStringInfo(lineText, currentChar, lineNumber, e.document, convertWithinTemplateString ?? true);
             const backtickPositions = current.positions;
-            const notTemplateStringWithinBackticks = current.withinBackticks && !current.inTemplateString;            
+            const notTemplateStringWithinBackticks = current.withinBackticks && !current.inTemplateString;       
             const usedToBeTemplateString = getTemplateStringInfo(previousDocument.lines[lineNumber].text, currentChar, lineNumber, previousDocument, convertWithinTemplateString ?? true).inTemplateString;
             if (notTemplateStringWithinBackticks
               && usedToBeTemplateString
@@ -355,7 +355,7 @@ function getTemplateStringInfo(line: string, currentCharIndex: number, cursorLin
     const startBracketIndex = line.substring(startIndex).indexOf('${');
     const endBracketIndex = line.substring(startBracketIndex + 1, endIndex).indexOf("}");
     const withinBackticks = startIndex >= 0 && endIndex > 0;
-    const inTemplateString = (withinBackticks && startIndex < startBracketIndex && endBracketIndex > 0 && endIndex > endBracketIndex);
+    const inTemplateString = (withinBackticks && startBracketIndex > 0 && endBracketIndex > 0 && endIndex > endBracketIndex);
     return {withinBackticks,  inTemplateString, positions: {startBacktickPosition: new vscode.Position(cursorLine, startIndex), endBacktickPosition: new vscode.Position(cursorLine, endIndex)}};
   } else {
     const lineIndex = cursorLine;
