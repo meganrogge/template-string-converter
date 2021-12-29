@@ -5,7 +5,7 @@ type QuoteChar = "both" | `'` | `"` | '`';
 type Position = "start" | "end";
 
 export function activate(context: vscode.ExtensionContext) {
-let previousDocument: DocumentCopy | undefined = undefined;
+  let previousDocument: DocumentCopy | undefined = undefined;
   vscode.workspace.onDidChangeTextDocument(async (e) => {
     const configuration = vscode.workspace.getConfiguration();
     const quoteType = configuration.get<QuoteType>("template-string-converter.quoteType");
@@ -64,46 +64,48 @@ let previousDocument: DocumentCopy | undefined = undefined;
             // keep the search reasonable
             const startLine = lineNumber > 20 ? lineNumber - 20 : 0;
             const endLine = e.document.lineCount - lineNumber > 20 ? lineNumber + 20 : e.document.lineCount;
-
             const multiLineText = e.document.getText(new vscode.Range(startLine, 0, endLine, 200));
-
-            const matches = multiLineText.match(regex);
+            let matches = multiLineText.match(regex);
+            if (lineText.includes(';')) {
+              // treat as a single line
+              matches = null;
+            }
             if (!!previousDocument) {
-            const current = getTemplateStringInfo(lineText, currentChar, lineNumber, e.document, convertWithinTemplateString ?? true);
-            const backtickPositions = current.positions;
-            const notTemplateStringWithinBackticks = current.withinBackticks && !current.inTemplateString;       
-            const usedToBeTemplateString = getTemplateStringInfo(previousDocument.lines[lineNumber].text, currentChar, lineNumber, previousDocument, convertWithinTemplateString ?? true).inTemplateString;
-            if (notTemplateStringWithinBackticks
-              && usedToBeTemplateString
-              && removeBackticks 
-              && !changes.text
-              && !!backtickPositions
+              const current = getTemplateStringInfo(lineText, currentChar, lineNumber, e.document, convertWithinTemplateString ?? true);
+              const backtickPositions = current.positions;
+              const notTemplateStringWithinBackticks = current.withinBackticks && !current.inTemplateString;
+              const usedToBeTemplateString = getTemplateStringInfo(previousDocument.lines[lineNumber].text, currentChar, lineNumber, previousDocument, convertWithinTemplateString ?? true).inTemplateString;
+              if (notTemplateStringWithinBackticks
+                && usedToBeTemplateString
+                && removeBackticks
+                && !changes.text
+                && !!backtickPositions
               ) {
-              const edit = new vscode.WorkspaceEdit();
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  backtickPositions.startBacktickPosition,
-                  backtickPositions.startBacktickPosition.translate(undefined, 1)
-                ),
-                quoteType === 'single' ? '\'' : '"',
-              );
-              edit.replace(
-                e.document.uri,
-                new vscode.Range(
-                  backtickPositions.endBacktickPosition,
-                  backtickPositions.endBacktickPosition.translate(undefined, 1)
-                ),
-                quoteType === 'single' ? '\'' : '"',
-              );
-              await vscode.workspace.applyEdit(edit);
+                const edit = new vscode.WorkspaceEdit();
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    backtickPositions.startBacktickPosition,
+                    backtickPositions.startBacktickPosition.translate(undefined, 1)
+                  ),
+                  quoteType === 'single' ? '\'' : '"',
+                );
+                edit.replace(
+                  e.document.uri,
+                  new vscode.Range(
+                    backtickPositions.endBacktickPosition,
+                    backtickPositions.endBacktickPosition.translate(undefined, 1)
+                  ),
+                  quoteType === 'single' ? '\'' : '"',
+                );
+                await vscode.workspace.applyEdit(edit);
                 const editor = vscode.window.activeTextEditor;
                 if (!editor) {
                   return;
                 }
                 editor.selection = new vscode.Selection(new vscode.Position(lineNumber, currentChar), new vscode.Position(lineNumber, currentChar));
-              return;
-            }
+                return;
+              }
             }
             if (matches !== null && addBracketsToProps) {
               if (changes.text === "{" && priorChar === "$") {
@@ -324,14 +326,16 @@ let previousDocument: DocumentCopy | undefined = undefined;
             }
           }
         }
-        
+
         if (vscode.window.activeTextEditor && selections.length > 0) {
           vscode.window.activeTextEditor.selections = selections;
         }
-        previousDocument = { lines: [], lineCount: e.document.lineCount};
-        for (let i =0; i< e.document.lineCount; i++) {
-          const line = e.document.lineAt(i);
-          previousDocument.lines.push(line);
+        if (removeBackticks) {
+          previousDocument = { lines: [], lineCount: e.document.lineCount };
+          for (let i = 0; i < e.document.lineCount; i++) {
+            const line = e.document.lineAt(i);
+            previousDocument.lines.push(line);
+          }
         }
       } catch { }
     }
@@ -346,8 +350,7 @@ const notAComment = (line: string, charIndex: number, startQuoteIndex: number, e
   }
 };
 
-function getTemplateStringInfo(line: string, currentCharIndex: number, cursorLine: number, document: vscode.TextDocument | DocumentCopy, convertWithinTemplateString: boolean): {withinBackticks: boolean, inTemplateString: boolean, positions?: {startBacktickPosition: vscode.Position, endBacktickPosition: vscode.Position}}{
-  //TODO: use convertWithinTemplateString
+function getTemplateStringInfo(line: string, currentCharIndex: number, cursorLine: number, document: vscode.TextDocument | DocumentCopy, convertWithinTemplateString: boolean): { withinBackticks: boolean, inTemplateString: boolean, positions?: { startBacktickPosition: vscode.Position, endBacktickPosition: vscode.Position } } {
   const withinLine = line.substring(0, currentCharIndex).includes("`") && line.substring(currentCharIndex, line.length).includes("`");
   if (withinLine) {
     const startIndex = line.substring(0, currentCharIndex).indexOf("`");
@@ -356,14 +359,19 @@ function getTemplateStringInfo(line: string, currentCharIndex: number, cursorLin
     const endBracketIndex = line.substring(startBracketIndex + 1, endIndex).indexOf("}");
     const withinBackticks = startIndex >= 0 && endIndex > 0;
     const inTemplateString = (withinBackticks && startBracketIndex > 0 && endBracketIndex > 0 && endIndex > endBracketIndex);
-    return {withinBackticks,  inTemplateString, positions: {startBacktickPosition: new vscode.Position(cursorLine, startIndex), endBacktickPosition: new vscode.Position(cursorLine, endIndex)}};
+    if (!convertWithinTemplateString) {
+      return { withinBackticks, inTemplateString, positions: { startBacktickPosition: new vscode.Position(cursorLine, startIndex), endBacktickPosition: new vscode.Position(cursorLine, endIndex) } };
+    } else if (convertWithinTemplateString && withinBackticks) {
+      return { withinBackticks: startBracketIndex > 0, inTemplateString };
+    }
+    return { withinBackticks: true, inTemplateString };
   } else {
     const lineIndex = cursorLine;
-    const currentLine =  'lines' in document ? document.lines[lineIndex].text : document.lineAt(lineIndex).text;
+    const currentLine = 'lines' in document ? document.lines[lineIndex].text : document.lineAt(lineIndex).text;
     const startOfLine = currentLine.substring(0, currentCharIndex);
     const endOfLine = currentLine.substring(currentCharIndex, line.length);
     //TODO
-    return { withinBackticks: hasBacktick(lineIndex, startOfLine, document, 'start') && hasBacktick(lineIndex, endOfLine, document, 'end'), inTemplateString: false};
+    return { withinBackticks: hasBacktick(lineIndex, startOfLine, document, 'start') && hasBacktick(lineIndex, endOfLine, document, 'end'), inTemplateString: false };
   }
 };
 
@@ -423,7 +431,7 @@ const getQuoteIndex = (line: string, quoteChar: QuoteChar, position: Position, c
       return back;
     }
   } else {
-  if (findFirstIndex) {
+    if (findFirstIndex) {
       return line.toString().indexOf('`') !== -1 ? line.toString().indexOf('`') : line.toString().indexOf(quoteChar);
     } else {
       return line.toString().lastIndexOf('`') !== -1 ? line.toString().lastIndexOf('`') : line.toString().lastIndexOf(quoteChar);
