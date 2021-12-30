@@ -68,7 +68,7 @@ export function activate(context: vscode.ExtensionContext) {
             const endLine = e.document.lineCount - lineNumber > 20 ? lineNumber + 20 : e.document.lineCount;
             const multiLineText = e.document.getText(new vscode.Range(startLine, 0, endLine, 200));
             let matches = multiLineText.match(regex);
-            if (lineText.includes(';')) {
+            if (lineText.includes(';') || lineText.includes(",") || lineText.substring(0, currentChar).includes(":")) {
               // treat as a single line
               matches = null;
             }
