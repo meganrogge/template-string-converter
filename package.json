@@ -13,8 +13,7 @@
     "onLanguage:typescript",
     "onLanguage:javascript",
     "onLanguage:typescriptreact",
-    "onLanguage:javascriptreact",
-    ""
+    "onLanguage:javascriptreact"
   ],
   "license": "MIT",
   "galleryBanner": {
