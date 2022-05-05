@@ -93,7 +93,7 @@
                   "type": "object",
                   "properties": {
                     "when": {
-                      "type": "string", 
+                      "type": "string",
                       "pattern": "\\w*\\$\\(basename\\)\\w*",
                       "default": "$(basename).ext",
                       "description": "Additional check on the siblings of a matching file. Use $(basename) as variable for the matching file name."
