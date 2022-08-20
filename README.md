@@ -1,6 +1,6 @@
 # Template String Converter
 
-This extension converts a string to a template string when `"${"` is typed.
+This Visual Studio Code extension converts a string to a template string when `"${"` is typed.
 
 ![typing a dollar sign then open curly brace within a string converts the quotes to backticks](https://raw.githubusercontent.com/meganrogge/template-string-converter/master/src/images/demo.gif)
 
