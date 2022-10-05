@@ -71,6 +71,7 @@
           },
           "template-string-converter.validLanguages": {
             "type": "array",
+            "items": { "type": "string" },
             "description": "the extension runs on these languages",
             "default": [
               "svelte",
@@ -82,7 +83,8 @@
           },
           "template-string-converter.filesExcluded": {
             "type": "array",
-            "description": "Configure glob patterns for excluding files and folders.",
+            "items": { "type": "string" },
+            "description": "configure glob patterns for excluding files and folders",
             "default": []
           }
         }
