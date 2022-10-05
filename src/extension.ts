@@ -17,7 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
     const autoClosingBrackets = configuration.get<{}>("editor.autoClosingBrackets");
     const convertOutermostQuotes = configuration.get<boolean>("template-string-converter.convertOutermostQuotes");
     const convertWithinTemplateString = configuration.get<boolean>("template-string-converter.convertWithinTemplateString");
-    const filesExcluded = configuration.get<{[key: string]: boolean}>("template-string-converter.filesExcluded")
+    const filesExcluded = configuration.get<{[key: string]: boolean}>("template-string-converter.filesExcluded");
     if (
       enabled &&
       quoteType &&
