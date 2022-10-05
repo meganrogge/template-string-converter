@@ -17,7 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
     const autoClosingBrackets = configuration.get<{}>("editor.autoClosingBrackets");
     const convertOutermostQuotes = configuration.get<boolean>("template-string-converter.convertOutermostQuotes");
     const convertWithinTemplateString = configuration.get<boolean>("template-string-converter.convertWithinTemplateString");
-    const filesExcluded: { key: string, value: boolean } | undefined | {} = configuration.get<object>("template-string-converter.filesExcluded")
+    const filesExcluded = configuration.get<{[key: string]: boolean}>("template-string-converter.filesExcluded");
     if (
       enabled &&
       quoteType &&
@@ -406,8 +406,8 @@ const hasBacktick = (lineIndex: number, currentLine: string, document: vscode.Te
   return false;
 };
 
-function includeFile(fileName: string, exclusions?: { key: string, value: boolean } | {}): boolean {
-  if (!exclusions || exclusions === {}) {
+function includeFile(fileName: string, exclusions?: { [key: string]: boolean }): boolean {
+  if (!exclusions) {
     return true;
   }
   for (const [key, value] of Object.entries(exclusions))
