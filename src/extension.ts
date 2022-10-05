@@ -407,7 +407,7 @@ const hasBacktick = (lineIndex: number, currentLine: string, document: vscode.Te
 };
 
 function includeFile(fileName: string, exclusions?: { key: string, value: boolean } | {}): boolean {
-  if (!exclusions || exclusions === {}) {
+  if (!exclusions) {
     return true;
   }
   for (const [key, value] of Object.entries(exclusions))
