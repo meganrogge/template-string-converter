@@ -71,6 +71,7 @@
           },
           "template-string-converter.validLanguages": {
             "type": "array",
+            "items": { "type": "string" },
             "description": "the extension runs on these languages",
             "default": [
               "svelte",
@@ -81,27 +82,10 @@
             ]
           },
           "template-string-converter.filesExcluded": {
-            "type": "object",
-            "markdownDescription": "Configure glob patterns for excluding files and folders.",
-            "additionalProperties": {
-              "anyOf": [
-                {
-                  "type": "boolean",
-                  "description": "The glob pattern to match file paths against. Set to true or false to enable or disable the pattern."
-                },
-                {
-                  "type": "object",
-                  "properties": {
-                    "when": {
-                      "type": "string",
-                      "pattern": "\\w*\\$\\(basename\\)\\w*",
-                      "default": "$(basename).ext",
-                      "description": "Additional check on the siblings of a matching file. Use $(basename) as variable for the matching file name."
-                    }
-                  }
-                }
-              ]
-            }
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "configure glob patterns for excluding files and folders",
+            "default": []
           }
         }
       }
