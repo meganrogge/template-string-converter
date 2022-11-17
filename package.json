@@ -71,7 +71,9 @@
           },
           "template-string-converter.validLanguages": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "the extension runs on these languages",
             "default": [
               "svelte",
@@ -83,7 +85,9 @@
           },
           "template-string-converter.filesExcluded": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "configure glob patterns for excluding files and folders",
             "default": []
           }
@@ -109,10 +113,9 @@
     "glob": "^7.1.6",
     "mocha": "^9.1.3",
     "typescript": "^4.0.2",
-    "vscode-test": "^1.4.0",
-    "webpack-cli": "^4.9.1"
+    "vscode-test": "^1.4.0"
   },
-  "icon": "src/images/logo.png",
+  "icon": "images/logo.png",
   "keywords": [
     "javascript",
     "typescript",
@@ -124,9 +127,5 @@
     "embedder",
     "autocorrect"
   ],
-  "dependencies": {
-    "ts-loader": "^9.2.6",
-    "vsce": "^2.5.3",
-    "webpack": "^5.64.2"
-  }
+  "dependencies": {}
 }
