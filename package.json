@@ -80,7 +80,8 @@
               "typescript",
               "javascript",
               "typescriptreact",
-              "javascriptreact"
+              "javascriptreact",
+              "vue"
             ]
           },
           "template-string-converter.filesExcluded": {
