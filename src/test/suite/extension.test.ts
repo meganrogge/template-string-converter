@@ -69,6 +69,24 @@ suite('Extension Test Suite', () => {
 			assert.strictEqual(doc.getText(), '"\\${"');
 		});
 	});
+
+	let JSXTag = '"<div className="hello $"/>"';
+	test('add bracket to JSX', () => {
+		return withRandomFileEditor(JSXTag, 'ts', async (editor, doc) => {
+			await editor.insertSnippet(new vscode.SnippetString("{"), new vscode.Position(0, 24));
+			await delay(500);
+			assert.strictEqual(doc.getText(), '"<div className={`hello ${}`}/>"');
+		});
+	});
+
+	let JSXTagWithSemicolon = '"<div className="hello $"/>;"';
+	test('add bracket to JSX with ;', () => {
+		return withRandomFileEditor(JSXTagWithSemicolon, 'ts', async (editor, doc) => {
+			await editor.insertSnippet(new vscode.SnippetString("{"), new vscode.Position(0, 24));
+			await delay(500);
+			assert.strictEqual(doc.getText(), '"<div className={`hello ${}`}/>;"');
+		});
+	});
 });
 export function delay(ms: number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
