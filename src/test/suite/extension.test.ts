@@ -70,18 +70,18 @@ suite('Extension Test Suite', () => {
 		});
 	});
 
-	let JSXTag = '"<div className="hello $"/>"';
-	test('add bracket to JSX', () => {
-		return withRandomFileEditor(JSXTag, 'ts', async (editor, doc) => {
+	let htmlTag = '"<div className="hello $"/>"';
+	test('add bracket to htmlTag', () => {
+		return withRandomFileEditor(htmlTag, 'ts', async (editor, doc) => {
 			await editor.insertSnippet(new vscode.SnippetString("{"), new vscode.Position(0, 24));
 			await delay(500);
 			assert.strictEqual(doc.getText(), '"<div className={`hello ${}`}/>"');
 		});
 	});
 
-	let JSXTagWithSemicolon = '"<div className="hello $"/>;"';
-	test('add bracket to JSX with ;', () => {
-		return withRandomFileEditor(JSXTagWithSemicolon, 'ts', async (editor, doc) => {
+	let htmlTagWithSemicolon = '"<div className="hello $"/>;"';
+	test('add bracket to htmlTag with ;', () => {
+		return withRandomFileEditor(htmlTagWithSemicolon, 'ts', async (editor, doc) => {
 			await editor.insertSnippet(new vscode.SnippetString("{"), new vscode.Position(0, 24));
 			await delay(500);
 			assert.strictEqual(doc.getText(), '"<div className={`hello ${}`}/>;"');
