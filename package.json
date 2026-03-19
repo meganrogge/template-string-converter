@@ -13,7 +13,9 @@
     "onLanguage:typescript",
     "onLanguage:javascript",
     "onLanguage:typescriptreact",
-    "onLanguage:javascriptreact"
+    "onLanguage:javascriptreact",
+    "onLanguage:astro",
+    "onLanguage:vue"
   ],
   "license": "MIT",
   "galleryBanner": {
@@ -80,7 +82,9 @@
               "typescript",
               "javascript",
               "typescriptreact",
-              "javascriptreact"
+              "javascriptreact",
+              "astro",
+              "vue"
             ]
           },
           "template-string-converter.filesExcluded": {
